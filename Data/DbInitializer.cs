@@ -18,256 +18,65 @@ namespace SmartHR_Payroll.Data
             const string systemUser = "System";
 
             // ==========================================
-            // 1. DEPARTMENTS
+            // 1. DEPARTMENTS (Công ty Tech chỉ cần 5 phòng cốt lõi)
             // ==========================================
-            var d1 = new Department { Code = "D01", Name = "Ban Giám Đốc", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d2 = new Department { Code = "D02", Name = "Hành Chính Nhân Sự", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d3 = new Department { Code = "D03", Name = "Kế Toán", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d4 = new Department { Code = "D04", Name = "Công Nghệ Thông Tin", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d5 = new Department { Code = "D05", Name = "Marketing", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d6 = new Department { Code = "D06", Name = "Kinh Doanh", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d7 = new Department { Code = "D07", Name = "Chăm Sóc Khách Hàng", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d8 = new Department { Code = "D08", Name = "Nghiên Cứu & Phát Triển", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d9 = new Department { Code = "D09", Name = "Sản Xuất", CreatedBy = systemUser, UpdatedBy = systemUser };
-            var d10 = new Department { Code = "D10", Name = "Kho Vận", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var d1 = new Department { Code = "BOD", Name = "Ban Giám Đốc", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var d2 = new Department { Code = "HR", Name = "Hành Chính Nhân Sự", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var d3 = new Department { Code = "ENG", Name = "Khối Kỹ Thuật (Engineering)", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var d4 = new Department { Code = "PROD", Name = "Khối Sản Phẩm (Product)", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var d5 = new Department { Code = "COM", Name = "Khối Kinh Doanh (Commercial)", CreatedBy = systemUser, UpdatedBy = systemUser };
 
-            context.Departments.AddRange(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10);
+            context.Departments.AddRange(d1, d2, d3, d4, d5);
             await context.SaveChangesAsync();
 
             // ==========================================
-            // 2. POSITIONS
+            // 2. POSITIONS (Các vị trí đặc thù ngành IT)
             // ==========================================
-            var p1 = new Position { Code = "P01", Name = "Giám Đốc", DepartmentId = d1.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p2 = new Position { Code = "P02", Name = "Trưởng Phòng HCNS", DepartmentId = d2.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p3 = new Position { Code = "P03", Name = "Kế Toán Trưởng", DepartmentId = d3.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p4 = new Position { Code = "P04", Name = "Trưởng Phòng IT", DepartmentId = d4.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p5 = new Position { Code = "P05", Name = "Chuyên Viên Marketing", DepartmentId = d5.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p6 = new Position { Code = "P06", Name = "Nhân Viên Kinh Doanh", DepartmentId = d6.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p7 = new Position { Code = "P07", Name = "Nhân Viên CSKH", DepartmentId = d7.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p8 = new Position { Code = "P08", Name = "Kỹ Sư R&D", DepartmentId = d8.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p9 = new Position { Code = "P09", Name = "Công Nhân", DepartmentId = d9.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
-            var p10 = new Position { Code = "P10", Name = "Thủ Kho", DepartmentId = d10.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p1 = new Position { Code = "CEO", Name = "Giám Đốc (CEO)", DepartmentId = d1.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p2 = new Position { Code = "HRM", Name = "Trưởng phòng HCNS", DepartmentId = d2.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p3 = new Position { Code = "TECH_LEAD", Name = "Tech Lead", DepartmentId = d3.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p4 = new Position { Code = "DEV_SENIOR", Name = "Senior Developer", DepartmentId = d3.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p5 = new Position { Code = "DEV_JUNIOR", Name = "Junior Developer", DepartmentId = d3.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p6 = new Position { Code = "QA", Name = "Chuyên viên Kiểm thử (QA)", DepartmentId = d3.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p7 = new Position { Code = "PM", Name = "Product Manager", DepartmentId = d4.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p8 = new Position { Code = "UI_UX", Name = "UI/UX Designer", DepartmentId = d4.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p9 = new Position { Code = "SALES", Name = "IT Sales Executive", DepartmentId = d5.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var p10 = new Position { Code = "HR_EXEC", Name = "Chuyên viên Nhân sự", DepartmentId = d2.DepartmentId, CreatedBy = systemUser, UpdatedBy = systemUser };
 
             context.Positions.AddRange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
             await context.SaveChangesAsync();
 
+            // 2.1 Role
+            var r1 = new Role { Name = "Admin", Description = "Quản trị hệ thống", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var r2 = new Role { Name = "Manager", Description = "Quản lý phòng ban", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var r3 = new Role { Name = "Employee", Description = "Nhân viên", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var r4 = new Role { Name = "HR", Description = "Nhân sự", CreatedBy = systemUser, UpdatedBy = systemUser };
+            context.Role.AddRange(r1, r2, r3, r4);
+            await context.SaveChangesAsync();
+
             // ==========================================
-            // 3. EMPLOYEES
+            // 3. EMPLOYEES (10 nhân sự map vào các vị trí trên)
             // ==========================================
-            var e1 = new Employee
-            {
-                EmployeeCode = "EMP001",
-                FirstName = "Nguyễn Văn",
-                LastName = "Một",
-                DateOfBirth = new DateOnly(1980, 1, 1),
-                Gender = Status.Gender.Male,
-                Email = "e1@smarthr.com",
-                PhoneNumber = "0901000001",
-                Address = "Hà Nội",
-                BankAccountNumber = "1000000001",
-                BankName = "Vietcombank",
-                HireDate = new DateOnly(2020, 1, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d1.DepartmentId,
-                PositionId = p1.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e2 = new Employee
-            {
-                EmployeeCode = "EMP002",
-                FirstName = "Trần Thị",
-                LastName = "Hai",
-                DateOfBirth = new DateOnly(1985, 2, 2),
-                Gender = Status.Gender.Female,
-                Email = "e2@smarthr.com",
-                PhoneNumber = "0901000002",
-                Address = "Hà Nội",
-                BankAccountNumber = "1000000002",
-                BankName = "BIDV",
-                HireDate = new DateOnly(2020, 2, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d2.DepartmentId,
-                PositionId = p2.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e3 = new Employee
-            {
-                EmployeeCode = "EMP003",
-                FirstName = "Lê Văn",
-                LastName = "Ba",
-                DateOfBirth = new DateOnly(1990, 3, 3),
-                Gender = Status.Gender.Male,
-                Email = "e3@smarthr.com",
-                PhoneNumber = "0901000003",
-                Address = "Hà Nội",
-                BankAccountNumber = "1000000003",
-                BankName = "Agribank",
-                HireDate = new DateOnly(2020, 3, 1),
-                Status = Status.EmployeeStatus.OnLeave,
-                DepartmentId = d3.DepartmentId,
-                PositionId = p3.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e4 = new Employee
-            {
-                EmployeeCode = "EMP004",
-                FirstName = "Phạm Thị",
-                LastName = "Bốn",
-                DateOfBirth = new DateOnly(1992, 4, 4),
-                Gender = Status.Gender.Female,
-                Email = "e4@smarthr.com",
-                PhoneNumber = "0901000004",
-                Address = "Đà Nẵng",
-                BankAccountNumber = "1000000004",
-                BankName = "Techcombank",
-                HireDate = new DateOnly(2021, 1, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d4.DepartmentId,
-                PositionId = p4.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e5 = new Employee
-            {
-                EmployeeCode = "EMP005",
-                FirstName = "Hoàng Văn",
-                LastName = "Năm",
-                DateOfBirth = new DateOnly(1995, 5, 5),
-                Gender = Status.Gender.Male,
-                Email = "e5@smarthr.com",
-                PhoneNumber = "0901000005",
-                Address = "Đà Nẵng",
-                BankAccountNumber = "1000000005",
-                BankName = "ACB",
-                HireDate = new DateOnly(2021, 5, 1),
-                Status = Status.EmployeeStatus.Terminated,
-                DepartmentId = d5.DepartmentId,
-                PositionId = p5.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e6 = new Employee
-            {
-                EmployeeCode = "EMP006",
-                FirstName = "Vũ Thị",
-                LastName = "Sáu",
-                DateOfBirth = new DateOnly(1996, 6, 6),
-                Gender = Status.Gender.Female,
-                Email = "e6@smarthr.com",
-                PhoneNumber = "0901000006",
-                Address = "Đà Nẵng",
-                BankAccountNumber = "1000000006",
-                BankName = "MBBank",
-                HireDate = new DateOnly(2022, 1, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d6.DepartmentId,
-                PositionId = p6.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e7 = new Employee
-            {
-                EmployeeCode = "EMP007",
-                FirstName = "Đặng Văn",
-                LastName = "Bảy",
-                DateOfBirth = new DateOnly(1997, 7, 7),
-                Gender = Status.Gender.Male,
-                Email = "e7@smarthr.com",
-                PhoneNumber = "0901000007",
-                Address = "TP.HCM",
-                BankAccountNumber = "1000000007",
-                BankName = "VietinBank",
-                HireDate = new DateOnly(2022, 7, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d7.DepartmentId,
-                PositionId = p7.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e8 = new Employee
-            {
-                EmployeeCode = "EMP008",
-                FirstName = "Bùi Thị",
-                LastName = "Tám",
-                DateOfBirth = new DateOnly(1998, 8, 8),
-                Gender = Status.Gender.Female,
-                Email = "e8@smarthr.com",
-                PhoneNumber = "0901000008",
-                Address = "TP.HCM",
-                BankAccountNumber = "1000000008",
-                BankName = "Sacombank",
-                HireDate = new DateOnly(2023, 1, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d8.DepartmentId,
-                PositionId = p8.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e9 = new Employee
-            {
-                EmployeeCode = "EMP009",
-                FirstName = "Đỗ Văn",
-                LastName = "Chín",
-                DateOfBirth = new DateOnly(1999, 9, 9),
-                Gender = Status.Gender.Male,
-                Email = "e9@smarthr.com",
-                PhoneNumber = "0901000009",
-                Address = "TP.HCM",
-                BankAccountNumber = "1000000009",
-                BankName = "VPBank",
-                HireDate = new DateOnly(2023, 9, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d9.DepartmentId,
-                PositionId = p9.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
-
-            var e10 = new Employee
-            {
-                EmployeeCode = "EMP010",
-                FirstName = "Hồ Thị",
-                LastName = "Mười",
-                DateOfBirth = new DateOnly(2000, 10, 10),
-                Gender = Status.Gender.Female,
-                Email = "e10@smarthr.com",
-                PhoneNumber = "0901000010",
-                Address = "Cần Thơ",
-                BankAccountNumber = "1000000010",
-                BankName = "TPBank",
-                HireDate = new DateOnly(2024, 1, 1),
-                Status = Status.EmployeeStatus.Active,
-                DepartmentId = d10.DepartmentId,
-                PositionId = p10.PositionId,
-                CreatedBy = systemUser,
-                UpdatedBy = systemUser
-            };
+            var e1 = new Employee { EmployeeCode = "EMP001", FirstName = "Nguyễn Văn", LastName = "Một", DateOfBirth = new DateOnly(1980, 1, 1), Gender = Status.Gender.Male, Email = "ceo@smarthr.com", PhoneNumber = "0901000001", Address = "Hà Nội", BankAccountNumber = "1000000001", BankName = "Vietcombank", HireDate = new DateOnly(2020, 1, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d1.DepartmentId, PositionId = p1.PositionId, RoleId = r1.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e2 = new Employee { EmployeeCode = "EMP002", FirstName = "Trần Thị", LastName = "Hai", DateOfBirth = new DateOnly(1985, 2, 2), Gender = Status.Gender.Female, Email = "hrm@smarthr.com", PhoneNumber = "0901000002", Address = "Hà Nội", BankAccountNumber = "1000000002", BankName = "BIDV", HireDate = new DateOnly(2020, 2, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d2.DepartmentId, PositionId = p2.PositionId, RoleId = r4.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e3 = new Employee { EmployeeCode = "EMP003", FirstName = "Lê Văn", LastName = "Ba", DateOfBirth = new DateOnly(1990, 3, 3), Gender = Status.Gender.Male, Email = "techlead@smarthr.com", PhoneNumber = "0901000003", Address = "Hà Nội", BankAccountNumber = "1000000003", BankName = "Agribank", HireDate = new DateOnly(2020, 3, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d3.DepartmentId, PositionId = p3.PositionId, RoleId = r2.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e4 = new Employee { EmployeeCode = "EMP004", FirstName = "Phạm Thị", LastName = "Bốn", DateOfBirth = new DateOnly(1992, 4, 4), Gender = Status.Gender.Female, Email = "seniordev@smarthr.com", PhoneNumber = "0901000004", Address = "Đà Nẵng", BankAccountNumber = "1000000004", BankName = "Techcombank", HireDate = new DateOnly(2021, 1, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d3.DepartmentId, PositionId = p4.PositionId, RoleId = r3.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e5 = new Employee { EmployeeCode = "EMP005", FirstName = "Hoàng Văn", LastName = "Năm", DateOfBirth = new DateOnly(1998, 5, 5), Gender = Status.Gender.Male, Email = "juniordev@smarthr.com", PhoneNumber = "0901000005", Address = "Đà Nẵng", BankAccountNumber = "1000000005", BankName = "ACB", HireDate = new DateOnly(2021, 5, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d3.DepartmentId, PositionId = p5.PositionId, RoleId = r3.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e6 = new Employee { EmployeeCode = "EMP006", FirstName = "Vũ Thị", LastName = "Sáu", DateOfBirth = new DateOnly(1996, 6, 6), Gender = Status.Gender.Female, Email = "qa@smarthr.com", PhoneNumber = "0901000006", Address = "Đà Nẵng", BankAccountNumber = "1000000006", BankName = "MBBank", HireDate = new DateOnly(2022, 1, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d3.DepartmentId, PositionId = p6.PositionId, RoleId = r3.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e7 = new Employee { EmployeeCode = "EMP007", FirstName = "Đặng Văn", LastName = "Bảy", DateOfBirth = new DateOnly(1992, 7, 7), Gender = Status.Gender.Male, Email = "pm@smarthr.com", PhoneNumber = "0901000007", Address = "TP.HCM", BankAccountNumber = "1000000007", BankName = "VietinBank", HireDate = new DateOnly(2022, 7, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d4.DepartmentId, PositionId = p7.PositionId, RoleId = r2.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e8 = new Employee { EmployeeCode = "EMP008", FirstName = "Bùi Thị", LastName = "Tám", DateOfBirth = new DateOnly(1998, 8, 8), Gender = Status.Gender.Female, Email = "uiux@smarthr.com", PhoneNumber = "0901000008", Address = "TP.HCM", BankAccountNumber = "1000000008", BankName = "Sacombank", HireDate = new DateOnly(2023, 1, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d4.DepartmentId, PositionId = p8.PositionId, RoleId = r3.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e9 = new Employee { EmployeeCode = "EMP009", FirstName = "Đỗ Văn", LastName = "Chín", DateOfBirth = new DateOnly(1995, 9, 9), Gender = Status.Gender.Male, Email = "sales@smarthr.com", PhoneNumber = "0901000009", Address = "TP.HCM", BankAccountNumber = "1000000009", BankName = "VPBank", HireDate = new DateOnly(2023, 9, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d5.DepartmentId, PositionId = p9.PositionId, RoleId = r3.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e10 = new Employee { EmployeeCode = "EMP010", FirstName = "Hồ Thị", LastName = "Mười", DateOfBirth = new DateOnly(2000, 10, 10), Gender = Status.Gender.Female, Email = "hrexec@smarthr.com", PhoneNumber = "0901000010", Address = "Cần Thơ", BankAccountNumber = "1000000010", BankName = "TPBank", HireDate = new DateOnly(2024, 1, 1), Status = Status.EmployeeStatus.Active, DepartmentId = d2.DepartmentId, PositionId = p10.PositionId, RoleId = r4.RoleId, CreatedBy = systemUser, UpdatedBy = systemUser };
 
             context.Employees.AddRange(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10);
             await context.SaveChangesAsync();
 
-            // Cập nhật ManagerId cho Department
-            d1.ManagerId = e1.EmployeeId;
-            d2.ManagerId = e2.EmployeeId;
-            d3.ManagerId = e3.EmployeeId;
-            d4.ManagerId = e4.EmployeeId;
-            d5.ManagerId = e5.EmployeeId;
-            d6.ManagerId = e6.EmployeeId;
-            d7.ManagerId = e7.EmployeeId;
-            d8.ManagerId = e8.EmployeeId;
-            d9.ManagerId = e9.EmployeeId;
-            d10.ManagerId = e10.EmployeeId;
+            // Cập nhật ManagerId cho Department (Để định tuyến duyệt đơn từ)
+            d1.ManagerId = e1.EmployeeId; // CEO quản lý BOD
+            d2.ManagerId = e2.EmployeeId; // Trưởng phòng HR
+            d3.ManagerId = e3.EmployeeId; // Tech Lead quản lý team Kỹ thuật
+            d4.ManagerId = e7.EmployeeId; // PM quản lý khối Product
+            d5.ManagerId = e1.EmployeeId; // Tạm thời CEO trực tiếp quản lý Sales
 
             await context.SaveChangesAsync();
 

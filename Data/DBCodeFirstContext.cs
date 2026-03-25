@@ -29,6 +29,7 @@ namespace SmartHR_Payroll.Data
         public DbSet<EmployeeDeduction> EmployeeDeductions { get; set; }
         public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
         public DbSet<Payslip> Payslips { get; set; }
+        public DbSet<Role> Role { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -74,6 +75,19 @@ namespace SmartHR_Payroll.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.ToTable("role");
+                entity.HasKey(r => r.RoleId);
+
+                entity.Property(r => r.RoleId).HasColumnName("role_id").ValueGeneratedOnAdd();
+                entity.Property(r => r.Name).HasColumnName("name").IsRequired().HasMaxLength(50);
+                entity.Property(r => r.Description).HasColumnName("description").HasMaxLength(200);
+
+                MapAuditableProperties(entity);
+                entity.HasIndex(r => r.Name).IsUnique();
+            });
+
             modelBuilder.Entity<Employee>(entity =>
             {
                 entity.ToTable("employees");
@@ -94,6 +108,7 @@ namespace SmartHR_Payroll.Data
                 entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(Status.EmployeeStatus.Active);
                 entity.Property(e => e.DepartmentId).HasColumnName("department_id").IsRequired();
                 entity.Property(e => e.PositionId).HasColumnName("position_id").IsRequired();
+                entity.Property(e => e.RoleId).HasColumnName("role_id").IsRequired();
 
                 entity.Ignore(e => e.FullName); 
 
@@ -110,6 +125,11 @@ namespace SmartHR_Payroll.Data
                 entity.HasOne(e => e.Position)
                       .WithMany(p => p.Employees)
                       .HasForeignKey(e => e.PositionId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Role)
+                      .WithMany(r => r.Employees)
+                      .HasForeignKey(e => e.RoleId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
