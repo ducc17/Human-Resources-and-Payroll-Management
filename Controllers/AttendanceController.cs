@@ -1,61 +1,75 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SmartHR_Payroll.Services;
-using SmartHR_Payroll.Services.IServices.SmartHR_Payroll.Services.IServices;
-
+using SmartHR_Payroll.Services.IServices;
+using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
     public class AttendanceController : Controller
     {
-        private readonly AttendanceService _service;
+        private readonly IAttendanceService _attendanceService;
 
-        public AttendanceController(AttendanceService service) => _service = service;
-
-        public async Task<IActionResult> Index()
+        public AttendanceController(IAttendanceService attendanceService)
         {
-            int empId = 2; // Giả sử ID nhân viên là 1
-
-            // Lấy dữ liệu từ Service
-            var todayAtt = await _service.GetTodayAttendanceAsync(empId);
-            var history = await _service.GetHistoryAsync(empId);
-
-            // Truyền trực tiếp qua ViewBag
-            ViewBag.History = history;
-
-            // Truyền TodayAttendance làm Model chính của View
-            return View(todayAtt);
+            _attendanceService = attendanceService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CheckIn()
+        // Trang chủ của Attendance (Khắc phục lỗi 404 khi vào /Attendance)
+        public IActionResult Index()
         {
-            try
-            {
-                int empId = 1; // Tạm thời hardcode, sau này lấy từ User.Identity
-                await _service.CheckInAsync(empId);
-                TempData["Success"] = "Check-in thành công!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = ex.Message;
-            }
-            return RedirectToAction("Index");
+            return View();
+            // Lưu ý: Nhớ giữ lại file Views/Attendance/Index.cshtml của bạn nhé
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CheckOut()
+        // Trang hiển thị Form Import
+        [HttpGet]
+        public IActionResult Import()
         {
-            try
+            return View();
+        }
+
+        // Xử lý khi bấm nút Upload File Excel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Import(IFormFile fileExcel)
+        {
+            if (fileExcel == null || fileExcel.Length == 0)
             {
-                int empId = 1;
-                await _service.CheckOutAsync(empId);
-                TempData["Success"] = "Check-out thành công!";
+                TempData["ErrorMessage"] = "Vui lòng chọn một file Excel hợp lệ.";
+                return View();
             }
-            catch (Exception ex)
+
+            var result = await _attendanceService.ImportExcelAsync(fileExcel);
+
+            TempData["SuccessMessage"] = $"Import thành công {result.SuccessCount} bản ghi.";
+            if (result.ErrorCount > 0)
             {
-                TempData["Error"] = ex.Message;
+                TempData["WarningMessage"] = $"Có {result.ErrorCount} bản ghi bị lỗi.";
+                ViewBag.ErrorList = result.ErrorMessages;
             }
-            return RedirectToAction("Index");
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MyHistory()
+        {
+            // 1. Rút "EmployeeId" từ trong vé đăng nhập (Claims) ra
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                // Nếu chưa đăng nhập hoặc mất Session -> Đuổi về trang Login
+                return RedirectToAction("Login", "Auth");
+            }
+
+            // 2. Chuyển ID từ chuỗi (string) sang số (int)
+            int employeeId = int.Parse(userIdClaim);
+
+            // 3. Gọi Service truyền đúng số ID đó vào
+            var model = await _attendanceService.GetMyAttendanceHistoryAsync(employeeId);
+
+            // 4. Trả dữ liệu ra View
+            return View(model);
         }
     }
 }

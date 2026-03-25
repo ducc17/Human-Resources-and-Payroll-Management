@@ -1,8 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-section {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="hero-section text-center shadow-sm">
+    <div class="container">
+        <h1 class="display-4 fw-bold text-dark mb-3">Phần mềm Quản trị Nhân sự <span class="text-primary">SmartHR</span></h1>
+        <p class="lead text-muted mb-5 mx-auto" style="max-width: 700px;">
+            Giải pháp số hóa toàn diện giúp doanh nghiệp quản lý hồ sơ, chấm công tự động và tính lương chính xác chỉ với vài click chuột.
+        </p>
+
+        <a asp-controller="Auth" asp-action="Login" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow fw-bold">
+            <i class="fa-brands fa-google me-2"></i> Đăng nhập bằng Email Công ty
+        </a>
+    </div>
 </div>

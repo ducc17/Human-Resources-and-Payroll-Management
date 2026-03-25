@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.EntityFrameworkCore;
 using SmartHR_Payroll.Data;
 using SmartHR_Payroll.Repositories;
 using SmartHR_Payroll.Repositories.IRepositories;
@@ -17,6 +18,31 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<DBCodeFirstContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Register the AuthService for dependency injection
+builder.Services.AddScoped<IAuthService, AuthService>();
+// Configure authentication with cookie and Google external login
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "ApplicationCookie";
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie("ApplicationCookie", options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.AccessDeniedPath = "/Auth/AccessDenied";
+})
+.AddCookie("ExternalCookie")
+.AddGoogle(options =>
+{
+    options.SignInScheme = "ExternalCookie"; 
+
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+    options.CallbackPath = "/signin-google";
+});
+// Suport MVC pattern
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -31,6 +57,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,0 +1,97 @@
+﻿@{
+    // Tắt Layout mặc định để trang Login độc lập, chiếm toàn bộ màn hình
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - SmartHR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 40px;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+
+        .btn-google {
+            background-color: #fff;
+            color: #444;
+            border: 1px solid #ccc;
+            font-weight: 500;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            border-radius: 6px;
+            transition: all 0.2s;
+            margin-top: 25px;
+        }
+
+            .btn-google:hover {
+                background-color: #f8f9fa;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .btn-google img {
+                width: 24px;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <i class="fa-solid fa-layer-group logo-icon"></i>
+        <h3 class="fw-bold mb-1">SmartHR System</h3>
+        <p class="text-muted small mb-4">Hệ thống Quản trị Nhân sự & Tiền lương</p>
+
+        <!-- Bắt lỗi gửi về từ Controller (nếu có) -->
+        @if (!string.IsNullOrEmpty(Context.Request.Query["error"]))
+        {
+            <div class="alert alert-danger py-2 text-start small">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                @Context.Request.Query["error"]
+            </div>
+        }
+
+        <!-- Nút Login POST vào AuthController -> LoginWithGoogle -->
+        <form asp-controller="Auth" asp-action="LoginWithGoogle" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <button type="submit" class="btn-google">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
+                Đăng nhập với Google
+            </button>
+        </form>
+
+        <p class="mt-4 mb-0 text-muted" style="font-size: 12px;">
+            Hệ thống chỉ dành cho nội bộ công ty.<br />
+            Sử dụng email có đuôi <b>@("@yourcompany.com")</b> để truy cập.
+        </p>
+    </div>
+
+</body>
+</html>
