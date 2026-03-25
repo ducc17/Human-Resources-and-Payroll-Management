@@ -1,7 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartHR_Payroll.Data;
+using SmartHR_Payroll.Repositories;
+using SmartHR_Payroll.Repositories.IRepositories;
+using SmartHR_Payroll.Services;
+using SmartHR_Payroll.Services.IServices.SmartHR_Payroll.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+
+builder.Services.AddScoped<AttendanceService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

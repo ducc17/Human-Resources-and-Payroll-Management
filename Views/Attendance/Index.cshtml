@@ -1,0 +1,57 @@
+﻿@using SmartHR_Payroll.Models
+@model Attendance
+
+@{
+    ViewData["Title"] = "Chấm công";
+    // Lấy danh sách lịch sử từ ViewBag
+    var historyList = ViewBag.History as List<Attendance> ?? new List<Attendance>();
+}
+
+<div class="container mt-4">
+    <h2>Trạng thái chấm công</h2>
+
+    <div class="card p-3 shadow-sm mb-4">
+        <p>Giờ vào: <b>@(Model?.CheckInTime?.ToString(@"hh\:mm") ?? "--:--")</b></p>
+        <p>Giờ ra: <b>@(Model?.CheckOutTime?.ToString(@"hh\:mm") ?? "--:--")</b></p>
+
+        <div class="d-flex gap-2">
+            @if (Model == null)
+            {
+                <form asp-action="CheckIn" method="post">
+                    <button class="btn btn-success">Check In</button>
+                </form>
+            }
+            else if (Model.CheckOutTime == null)
+            {
+                <form asp-action="CheckOut" method="post">
+                    <button class="btn btn-danger">Check Out</button>
+                </form>
+            }
+            else
+            {
+                <span class="badge bg-info">Hôm nay đã xong!</span>
+            }
+        </div>
+    </div>
+
+    <h4>Lịch sử gần đây</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ngày</th>
+                <th>Vào</th>
+                <th>Ra</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in historyList)
+            {
+                <tr>
+                    <td>@item.Date.ToString("dd/MM/yyyy")</td>
+                    <td>@item.CheckInTime</td>
+                    <td>@item.CheckOutTime</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
