@@ -13,6 +13,6 @@ namespace SmartHR_Payroll.Models
         public TimeSpan? CheckOutTime { get; set; }
         public decimal TotalHours { get; set; } = 0;
         public bool IsLate { get; set; } = false;
-        public string Note { get; set; }
+        public string? Note { get; set; }
     }
 }
