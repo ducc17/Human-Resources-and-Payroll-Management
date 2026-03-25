@@ -12,8 +12,8 @@ using SmartHR_Payroll.Data;
 namespace SmartHR_Payroll.Migrations
 {
     [DbContext(typeof(DBCodeFirstContext))]
-    [Migration("20260315172247_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260325031412_InitialDB")]
+    partial class InitialDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -411,6 +411,10 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("int")
                         .HasColumnName("position_id");
 
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int")
+                        .HasColumnName("role_id");
+
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -438,6 +442,8 @@ namespace SmartHR_Payroll.Migrations
                         .IsUnique();
 
                     b.HasIndex("PositionId");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("employees", (string)null);
                 });
@@ -870,6 +876,63 @@ namespace SmartHR_Payroll.Migrations
                     b.ToTable("positions", (string)null);
                 });
 
+            modelBuilder.Entity("SmartHR_Payroll.Models.Role", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("role_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("RoleId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("role", (string)null);
+                });
+
             modelBuilder.Entity("SmartHR_Payroll.Models.Attendance", b =>
                 {
                     b.HasOne("SmartHR_Payroll.Models.Employee", "Employee")
@@ -906,9 +969,17 @@ namespace SmartHR_Payroll.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SmartHR_Payroll.Models.Role", "Role")
+                        .WithMany("Employees")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Department");
 
                     b.Navigation("Position");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.EmployeeAllowance", b =>
@@ -1026,6 +1097,11 @@ namespace SmartHR_Payroll.Migrations
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Position", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("SmartHR_Payroll.Models.Role", b =>
                 {
                     b.Navigation("Employees");
                 });

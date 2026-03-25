@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SmartHR_Payroll.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -110,6 +110,25 @@ namespace SmartHR_Payroll.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "role",
+                columns: table => new
+                {
+                    role_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    created_by = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    updated_by = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    is_deleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_role", x => x.role_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "positions",
                 columns: table => new
                 {
@@ -155,6 +174,7 @@ namespace SmartHR_Payroll.Migrations
                     status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     department_id = table.Column<int>(type: "int", nullable: false),
                     position_id = table.Column<int>(type: "int", nullable: false),
+                    role_id = table.Column<int>(type: "int", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     created_by = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -175,6 +195,12 @@ namespace SmartHR_Payroll.Migrations
                         column: x => x.position_id,
                         principalTable: "positions",
                         principalColumn: "position_id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_employees_role_role_id",
+                        column: x => x.role_id,
+                        principalTable: "role",
+                        principalColumn: "role_id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -424,6 +450,11 @@ namespace SmartHR_Payroll.Migrations
                 column: "position_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_employees_role_id",
+                table: "employees",
+                column: "role_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_leave_requests_employee_id",
                 table: "leave_requests",
                 column: "employee_id");
@@ -453,6 +484,12 @@ namespace SmartHR_Payroll.Migrations
                 name: "IX_positions_department_id",
                 table: "positions",
                 column: "department_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_role_name",
+                table: "role",
+                column: "name",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -493,6 +530,9 @@ namespace SmartHR_Payroll.Migrations
 
             migrationBuilder.DropTable(
                 name: "positions");
+
+            migrationBuilder.DropTable(
+                name: "role");
 
             migrationBuilder.DropTable(
                 name: "departments");
