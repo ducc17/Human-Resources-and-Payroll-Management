@@ -1,0 +1,77 @@
+﻿@model SmartHR_Payroll.ViewModels.Profile.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm text-center p-4">
+                <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=random&size=128"
+                     class="rounded-circle mx-auto mb-3" alt="Avatar" width="120">
+                <h4 class="mb-1">@Model.FullName</h4>
+                <p class="text-muted mb-2">@Model.PositionName</p>
+                <span class="badge bg-primary mb-3">@Model.DepartmentName</span>
+
+                <a asp-action="Edit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil-square"></i> Cập nhật thông tin
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-person-lines-fill text-primary"></i> Thông tin liên hệ
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Mã NV</div>
+                        <div class="col-sm-9 fw-bold">@Model.EmployeeCode</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Ngày tham gia</div>
+                        <div class="col-sm-9 fw-bold">@Model.HireDate</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Email</div>
+                        <div class="col-sm-9">@Model.Email</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Số điện thoại</div>
+                        <div class="col-sm-9">@Model.PhoneNumber</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Địa chỉ</div>
+                        <div class="col-sm-9">@Model.Address</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-bank2 text-success"></i> Thông tin nhận lương
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Ngân hàng</div>
+                        <div class="col-sm-9">@(string.IsNullOrEmpty(Model.BankName) ? "Chưa cập nhật" : Model.BankName)</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted">Số tài khoản</div>
+                        <div class="col-sm-9 fw-bold text-success">@(string.IsNullOrEmpty(Model.BankAccountNumber) ? "Chưa cập nhật" : Model.BankAccountNumber)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

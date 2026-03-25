@@ -1,12 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 using SmartHR_Payroll.Data;
+using SmartHR_Payroll.Repositories;
+using SmartHR_Payroll.Repositories.IRepositories;
 using SmartHR_Payroll.Services;
-using SmartHR_Payroll.Services.IServices;
+using SmartHR_Payroll.Services.IServices.SmartHR_Payroll.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register the DB context with the dependency injection container
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+
+builder.Services.AddScoped<AttendanceService>();
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
 builder.Services.AddDbContext<DBCodeFirstContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Register the AuthService for dependency injection
