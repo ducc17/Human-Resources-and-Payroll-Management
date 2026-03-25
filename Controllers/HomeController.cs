@@ -1,6 +1,7 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHR_Payroll.Models;
+using System.Diagnostics;
 
 namespace SmartHR_Payroll.Controllers
 {
@@ -13,7 +14,19 @@ namespace SmartHR_Payroll.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous] 
         public IActionResult Index()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            return View();
+        }
+
+        [Authorize]
+        public IActionResult Dashboard()
         {
             return View();
         }
