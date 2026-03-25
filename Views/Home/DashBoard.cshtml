@@ -1,0 +1,101 @@
+﻿@using System.Security.Claims
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+}
+
+<!-- Lời chào -->
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1">Xin chào, @User.FindFirst(ClaimTypes.Name)?.Value! 👋</h2>
+            <p class="text-muted mb-0">Hôm nay là @DateTime.Now.ToString("dd/MM/yyyy"). Chúc bạn một ngày làm việc hiệu quả.</p>
+        </div>
+        <div>
+            <!-- Hiển thị quyền để user biết mình đang dùng quyền gì -->
+            <span class="badge bg-primary px-3 py-2" style="font-size: 14px;">
+                <i class="fa-solid fa-shield-halved me-1"></i> Quyền: @User.FindFirst(ClaimTypes.Role)?.Value
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Các thẻ thống kê nhanh (Giao diện mẫu) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 border-start border-primary border-4">
+            <div class="card-body">
+                <h6 class="text-muted small fw-bold text-uppercase">Ngày công tháng này</h6>
+                <h3 class="fw-bold mb-0">20/22 <span class="fs-6 text-muted fw-normal">ngày</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 border-start border-warning border-4">
+            <div class="card-body">
+                <h6 class="text-muted small fw-bold text-uppercase">Phép năm còn lại</h6>
+                <h3 class="fw-bold mb-0">10 <span class="fs-6 text-muted fw-normal">ngày</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 border-start border-success border-4">
+            <div class="card-body">
+                <h6 class="text-muted small fw-bold text-uppercase">Phụ cấp được hưởng</h6>
+                <h3 class="fw-bold mb-0">3 <span class="fs-6 text-muted fw-normal">khoản</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 border-start border-info border-4">
+            <div class="card-body">
+                <h6 class="text-muted small fw-bold text-uppercase">Phiếu lương mới nhất</h6>
+                <h3 class="fw-bold mb-0 text-success"><i class="fa-solid fa-check-circle me-1"></i> Đã nhận</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thẻ hiển thị thông tin trích xuất từ Database -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white pt-4 pb-2 border-0">
+                <h5 class="fw-bold"><i class="fa-solid fa-address-card text-primary me-2"></i>Hồ sơ nhân viên của bạn</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+                    <img src="@User.FindFirst("Avatar")?.Value" class="rounded-circle shadow-sm me-3" width="60" height="60" alt="Avatar" />
+                    <div>
+                        <h5 class="mb-0 fw-bold">@User.FindFirst(ClaimTypes.Name)?.Value</h5>
+                        <p class="text-muted mb-0 small">@User.FindFirst(ClaimTypes.Email)?.Value</p>
+                    </div>
+                </div>
+
+                <table class="table table-borderless table-sm">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" width="40%">Mã nhân viên (ID):</td>
+                            <td class="fw-bold">EMP_@User.FindFirst(ClaimTypes.NameIdentifier)?.Value</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Phòng ban:</td>
+                            <td class="fw-bold">@User.FindFirst("DepartmentCode")?.Value</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Chức vụ:</td>
+                            <td class="fw-bold text-primary">@User.FindFirst("PositionName")?.Value</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-4 bg-primary text-white d-flex justify-content-center align-items-center">
+            <i class="fa-brands fa-google" style="font-size: 50px; opacity: 0.8; margin-bottom: 15px;"></i>
+            <h4>Đăng nhập thành công!</h4>
+            <p class="mb-0 opacity-75">Hệ thống đã kết nối tài khoản Google của bạn với CSDL Nhân sự một cách an toàn.</p>
+        </div>
+    </div>
+</div>
