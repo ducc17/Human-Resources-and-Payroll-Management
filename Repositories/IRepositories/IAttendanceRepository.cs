@@ -6,9 +6,15 @@ namespace SmartHR_Payroll.Repositories.IRepositories
     {
         // Các hàm cơ bản
         Task<Attendance?> GetTodayAttendanceAsync(int employeeId, DateOnly date);
-        Task<List<Attendance>> GetMyHistoryAsync(int employeeId);
+        Task<List<Attendance>> GetMyAttendanceHistoryAsync(int employeeId, DateOnly? fromDate, DateOnly? toDate, string? status);
         // Các hàm phục vụ Import Excel (IoT)
         Task<Employee?> GetEmployeeByCodeAsync(string employeeCode);
         Task UpsertAttendanceAsync(Attendance attendance);
+
+        //lấy danh sách phòng ban
+        Task<List<Department>> GetAllDepartmentsAsync();
+
+        // hàm lọc
+        Task<List<Attendance>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId);
     }
 }

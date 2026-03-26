@@ -6,5 +6,6 @@ namespace SmartHR_Payroll.Repositories.IRepositories
     {
         Task<Employee?> GetEmployeeProfileAsync(int employeeId);
         Task UpdateEmployeeAsync(Employee employee);
+        Task<Employee?> GetByIdAsync(int id);
     }
 }

@@ -4,12 +4,11 @@ using SmartHR_Payroll.Data;
 using SmartHR_Payroll.Repositories;
 using SmartHR_Payroll.Repositories.IRepositories;
 using SmartHR_Payroll.Services;
-using SmartHR_Payroll.Services.IServices.SmartHR_Payroll.Services.IServices;
+using SmartHR_Payroll.Services.IServices;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IAttendanceService, AttendanceService>();
-builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 
 builder.Services.AddScoped<AttendanceService>();
 
@@ -43,6 +42,26 @@ builder.Services.AddAuthentication(options =>
 });
 // Suport MVC pattern
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+
+//Profile
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
+// Department
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+
+//Position
+builder.Services.AddScoped<IPositionRepository, PositionRepository>();
+builder.Services.AddScoped<IPositionService, PositionService>();
+
+//Role
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+
 
 var app = builder.Build();
 

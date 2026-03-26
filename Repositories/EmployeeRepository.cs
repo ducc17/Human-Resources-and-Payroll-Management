@@ -28,5 +28,12 @@ namespace SmartHR_Payroll.Repositories
             _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
         }
+        public async Task<Employee?> GetByIdAsync(int id)
+        {
+            return await _context.Employees
+                .Include(e => e.Department) // Kéo theo data Phòng ban
+                .Include(e => e.Position)   // Kéo theo data Vị trí
+                .FirstOrDefaultAsync(e => e.EmployeeId == id);
+        }
     }
 }

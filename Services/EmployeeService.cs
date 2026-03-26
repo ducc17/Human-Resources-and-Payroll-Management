@@ -69,5 +69,10 @@ namespace SmartHR_Payroll.Services
             await _employeeRepository.UpdateEmployeeAsync(emp);
             return (true, "Cập nhật hồ sơ thành công!");
         }
+        public async Task<Employee?> GetByIdAsync(int id)
+        {
+            // Giả định trong EmployeeRepository của bạn có hàm GetByIdAsync
+            return await _employeeRepository.GetByIdAsync(id);
+        }
     }
 }

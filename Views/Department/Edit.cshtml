@@ -1,0 +1,70 @@
+﻿@model SmartHR_Payroll.Models.Department
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 w-50 mx-auto">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">Cập nhật Phòng ban</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                <input type="hidden" asp-for="DepartmentId" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Mã phòng ban (Không được sửa)</label>
+                    <input asp-for="Code" class="form-control bg-light" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tên phòng ban</label>
+                    <input asp-for="Name" class="form-control" placeholder="Nhập tên phòng ban..." required />
+
+                    <div class="invalid-feedback">
+                        Vui lòng nhập tên phòng ban.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Quản lý (Manager)</label>
+                    <select asp-for="ManagerId" class="form-select" asp-items="ViewBag.Employees">
+                        <option value="">-- Để trống nếu chưa bổ nhiệm --</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Trạng thái hoạt động</label>
+                    <select asp-for="IsDeleted" class="form-select">
+                        <option value="false">Đang hoạt động</option>
+                        <option value="true">Đã khóa (Ngừng hoạt động)</option>
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-save"></i> Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict'
+            // Lấy tất cả các form có class needs-validation
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Lặp qua form và chặn submit nếu có lỗi
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

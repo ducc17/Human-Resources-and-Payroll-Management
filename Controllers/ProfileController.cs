@@ -18,19 +18,35 @@ namespace SmartHR_Payroll.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // 1. Lấy ID người dùng đang đăng nhập
+            var userIdStr = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Auth");
 
-            if (string.IsNullOrEmpty(userId))
+            int employeeId = int.Parse(userIdStr);
+
+            // 2. Gọi hàm GetByIdAsync (đã có sẵn Include Department và Position)
+            var emp = await _employeeService.GetByIdAsync(employeeId);
+            if (emp == null) return NotFound();
+
+            // 3. Đổ dữ liệu TƯƠI từ DB vào ViewModel
+            var model = new ProfileViewModel
             {
-                return RedirectToAction("Login", "Auth");
-            }
+                EmployeeCode = emp.EmployeeCode,
+                FullName = emp.FirstName + " " + emp.LastName,
 
-            int employeeId = int.Parse(userId);
-            var profile = await _employeeService.GetProfileAsync(employeeId);
+                // Đây là 2 dòng quan trọng nhất để fix lỗi hiển thị sai:
+                PositionName = emp.Position?.Name ?? "Chưa cập nhật",
+                DepartmentName = emp.Department?.Name ?? "Chưa cập nhật",
 
-            if (profile == null) return NotFound("Không tìm thấy dữ liệu nhân viên.");
+                HireDate = emp.HireDate,
+                Email = emp.Email,
+                PhoneNumber = emp.PhoneNumber ?? "Chưa cập nhật",
+                Address = emp.Address ?? "Chưa cập nhật",
+                BankName = emp.BankName,
+                BankAccountNumber = emp.BankAccountNumber
+            };
 
-            return View(profile);
+            return View(model);
         }
 
         // Hiển thị Form chỉnh sửa (GET)
