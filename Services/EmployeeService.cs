@@ -34,13 +34,11 @@ namespace SmartHR_Payroll.Services
                 Email = emp.Email,
                 PhoneNumber = emp.PhoneNumber,
                 Address = emp.Address,
-                BankName = emp.BankName,
+                BankName = emp.Bank?.BankName ?? string.Empty,
                 BankAccountNumber = emp.BankAccountNumber,
                 HireDate = emp.HireDate,
-                // DepartmentName = emp.Department?.name ?? "Chưa xếp phòng", // Bỏ comment nếu có Navigation Property
-                // PositionName = emp.Position?.name ?? "Chưa có chức vụ"
-                DepartmentName = "Phòng IT", // Dữ liệu giả định tạm thời
-                PositionName = "Developer"   // Dữ liệu giả định tạm thời
+                DepartmentName = emp.Job?.Department?.Name ?? "Chưa xếp phòng",
+                PositionName = emp.Job?.Position?.Name ?? "Chưa có chức vụ"
             };
         }
 
@@ -54,7 +52,7 @@ namespace SmartHR_Payroll.Services
                 EmployeeId = emp.EmployeeId,
                 PhoneNumber = emp.PhoneNumber,
                 Address = emp.Address,
-                BankName = emp.BankName,
+                BankName = emp.Bank?.BankName ?? string.Empty,
                 BankAccountNumber = emp.BankAccountNumber
             };
         }
@@ -67,20 +65,35 @@ namespace SmartHR_Payroll.Services
             // CHỈ cập nhật những trường cho phép (Bảo mật)
             emp.PhoneNumber = model.PhoneNumber;
             emp.Address = model.Address;
-            emp.BankName = model.BankName;
             emp.BankAccountNumber = model.BankAccountNumber;
+
+            if (!string.IsNullOrWhiteSpace(model.BankName))
+            {
+                var banks = await _employeeRepository.GetBanksAsync();
+                var selectedBank = banks.FirstOrDefault(b =>
+                    string.Equals(b.BankName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(b.ShortName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(b.BankCode, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                if (selectedBank == null)
+                {
+                    return (false, "Ngân hàng không hợp lệ.");
+                }
+
+                emp.BankId = selectedBank.BankId;
+            }
 
             await _employeeRepository.UpdateEmployeeAsync(emp);
             return (true, "Cập nhật hồ sơ thành công!");
         }
 
-        public async Task<(List<Department> Departments, List<Position> Positions, List<Role> Roles)> GetCreateEmployeeLookupsAsync()
+        public async Task<(List<Job> Jobs, List<Bank> Banks, List<Role> Roles)> GetCreateEmployeeLookupsAsync()
         {
-            var departments = await _employeeRepository.GetDepartmentsAsync();
-            var positions = await _employeeRepository.GetPositionsAsync();
+            var jobs = await _employeeRepository.GetJobsAsync();
+            var banks = await _employeeRepository.GetBanksAsync();
             var roles = await _employeeRepository.GetRolesAsync();
 
-            return (departments, positions, roles);
+            return (jobs, banks, roles);
         }
 
         public async Task<(bool Success, string Message)> CreateEmployeeAsync(Employee employee, string actor)
@@ -89,12 +102,12 @@ namespace SmartHR_Payroll.Services
                 return (false, "Dữ liệu nhân viên không hợp lệ.");
 
             if (new[] { employee.FirstName, employee.LastName, employee.Email, employee.PhoneNumber,
-                employee.Address, employee.BankAccountNumber, employee.BankName }
+                employee.Address, employee.BankAccountNumber }
                 .Any(string.IsNullOrWhiteSpace))
                 return (false, "Vui lòng điền đầy đủ các thông tin bắt buộc.");
 
-            if (employee.DepartmentId <= 0 || employee.PositionId <= 0 || employee.RoleId <= 0)
-                return (false, "Vòng ban và Chức vụ không được để trống.");
+            if (employee.JobId <= 0 || employee.RoleId <= 0)
+                return (false, "Vị trí công việc và vai trò không được để trống.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
             if (employee.DateOfBirth >= today)
@@ -112,7 +125,6 @@ namespace SmartHR_Payroll.Services
             employee.PhoneNumber = employee.PhoneNumber.Trim();
             employee.Address = employee.Address.Trim();
             employee.BankAccountNumber = employee.BankAccountNumber.Trim();
-            employee.BankName = employee.BankName.Trim();
 
             if (!IsLettersOnly(employee.FirstName))
             {
@@ -154,10 +166,10 @@ namespace SmartHR_Payroll.Services
                 return (false, "Số tài khoản ngân hàng đã tồn tại trong hệ thống.");
             }
 
-            var departments = await _employeeRepository.GetDepartmentsAsync();
-            if (!departments.Any(d => d.DepartmentId == employee.DepartmentId))
+            var jobs = await _employeeRepository.GetJobsAsync();
+            if (!jobs.Any(j => j.JobId == employee.JobId))
             {
-                return (false, "Phòng ban không hợp lệ.");
+                return (false, "Công việc không hợp lệ.");
             }
 
             var roles = await _employeeRepository.GetRolesAsync();
@@ -166,22 +178,8 @@ namespace SmartHR_Payroll.Services
                 return (false, "Vai trò không hợp lệ.");
             }
 
-            var positions = await _employeeRepository.GetPositionsAsync();
-            var selectedPosition = positions.FirstOrDefault(p => p.PositionId == employee.PositionId);
-            if (selectedPosition == null)
-            {
-                return (false, "Chức vụ không hợp lệ.");
-            }
-
-            if (selectedPosition.DepartmentId != employee.DepartmentId)
-            {
-                return (false, "Chức vụ không thuộc phòng ban đã chọn.");
-            }
-
             employee.Gender = employee.Gender;
             employee.Status = Status.EmployeeStatus.Active;
-            employee.DepartmentId = employee.DepartmentId;
-            employee.PositionId = employee.PositionId;
             employee.RoleId = employee.RoleId;
             employee.CreatedAt = DateTime.UtcNow;
             employee.CreatedBy = actor;
@@ -236,8 +234,8 @@ namespace SmartHR_Payroll.Services
                     CreatedBy = e.CreatedBy ?? string.Empty,
                     UpdatedAt = e.UpdatedAt,
                     UpdatedBy = e.UpdatedBy ?? string.Empty,
-                    DepartmentName = e.Department?.Name ?? string.Empty,
-                    PositionName = e.Position?.Name ?? string.Empty,
+                    DepartmentName = e.Job?.Department?.Name ?? string.Empty,
+                    PositionName = e.Job?.Position?.Name ?? string.Empty,
                     Email = e.Email,
                     PhoneNumber = e.PhoneNumber,
                     Status = e.Status

@@ -94,8 +94,8 @@ namespace SmartHR_Payroll.Controllers
             if (emp != null)
             {
                 ViewBag.FullName = emp.FirstName + " " + emp.LastName;
-                ViewBag.PositionName = emp.Position?.Name ?? "Nhân viên";
-                ViewBag.DepartmentName = emp.Department?.Name ?? "Chưa phân phòng";
+                ViewBag.PositionName = emp.Job.Position?.Name ?? "Nhân viên";
+                ViewBag.DepartmentName = emp.Job.Department?.Name ?? "Chưa phân phòng";
             }
 
             // Lưu lại trạng thái lọc để form không bị mất dữ liệu khi load lại trang

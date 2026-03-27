@@ -25,9 +25,11 @@ namespace SmartHR_Payroll.Repositories
             // Bắt đầu Query: Kéo theo dữ liệu Employee, Position và Department
             var query = _context.Attendances
                 .Include(a => a.Employee)
-                    .ThenInclude(e => e.Position)
+                    .ThenInclude(e => e.Job)
+                        .ThenInclude(j => j.Position)
                 .Include(a => a.Employee)
-                    .ThenInclude(e => e.Department)
+                    .ThenInclude(e => e.Job)
+                        .ThenInclude(j => j.Department)
                 .AsQueryable();
 
             // 1. Tìm kiếm theo Tên hoặc Mã NV
@@ -66,7 +68,7 @@ namespace SmartHR_Payroll.Repositories
             if (departmentId.HasValue && departmentId.Value > 0)
             {
                 // Kiểm tra xem khóa ngoại trong Model Employee là DepartmentId hay department_id để sửa cho đúng nhé
-                query = query.Where(a => a.Employee.DepartmentId == departmentId.Value);
+                query = query.Where(a => a.Employee.Job.DepartmentId == departmentId.Value);
             }
 
             return await query.OrderByDescending(a => a.Date).ToListAsync();

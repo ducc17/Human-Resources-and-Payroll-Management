@@ -12,8 +12,8 @@ using SmartHR_Payroll.Data;
 namespace SmartHR_Payroll.Migrations
 {
     [DbContext(typeof(DBCodeFirstContext))]
-    [Migration("20260327091848_StandardHRSchema")]
-    partial class StandardHRSchema
+    [Migration("20260327105455_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -16,6 +16,8 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task<bool> BankAccountNumberExistsAsync(string bankAccountNumber);
         Task<List<Department>> GetDepartmentsAsync();
         Task<List<Position>> GetPositionsAsync();
+        Task<List<Job>> GetJobsAsync();
+        Task<List<Bank>> GetBanksAsync();
         Task<List<Role>> GetRolesAsync();
         Task AddEmployeeAsync(Employee employee);
         Task<Employee?> GetByIdAsync(int id);

@@ -99,24 +99,19 @@
                     <span asp-validation-for="BankAccountNumber" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="BankName" class="form-label"></label>
-                    <input asp-for="BankName" class="form-control" />
-                    <span asp-validation-for="BankName" class="text-danger"></span>
+                    <label asp-for="BankId" class="form-label">Ngân hàng</label>
+                    <select asp-for="BankId" class="form-select" asp-items="ViewBag.Banks">
+                        <option value="">-- Chọn ngân hàng --</option>
+                    </select>
+                    <span asp-validation-for="BankId" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="DepartmentId" class="form-label">Phòng ban</label>
-                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
-                        <option value="">-- Chọn phòng ban --</option>
+                    <label asp-for="JobId" class="form-label">Công việc</label>
+                    <select asp-for="JobId" class="form-select" asp-items="ViewBag.Jobs">
+                        <option value="">-- Chọn công việc --</option>
                     </select>
-                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="PositionId" class="form-label">Chức vụ</label>
-                    <select asp-for="PositionId" class="form-select" asp-items="ViewBag.Positions">
-                        <option value="">-- Chọn chức vụ --</option>
-                    </select>
-                    <span asp-validation-for="PositionId" class="text-danger"></span>
+                    <span asp-validation-for="JobId" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label asp-for="RoleId" class="form-label">Vai trò</label>
@@ -167,43 +162,5 @@
             maxDate: "today",
             allowInput: false
         });
-
-        const allPositions = @Html.Raw(JsonSerializer.Serialize(ViewBag.PositionOptions ?? new List<object>()));
-        const departmentSelect = document.getElementById("DepartmentId");
-        const positionSelect = document.getElementById("PositionId");
-
-        const renderPositionsByDepartment = () => {
-            if (!departmentSelect || !positionSelect) {
-                return;
-            }
-
-            const selectedDepartmentId = Number.parseInt(departmentSelect.value, 10);
-            const currentPositionId = positionSelect.value;
-
-            positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
-
-            if (Number.isNaN(selectedDepartmentId)) {
-                positionSelect.disabled = true;
-                return;
-            }
-
-            const filtered = allPositions.filter(p => p.DepartmentId === selectedDepartmentId);
-
-            filtered.forEach(position => {
-                const option = document.createElement("option");
-                option.value = position.PositionId;
-                option.textContent = position.DisplayText;
-                positionSelect.appendChild(option);
-            });
-
-            const hasCurrent = filtered.some(p => String(p.PositionId) === currentPositionId);
-            positionSelect.value = hasCurrent ? currentPositionId : "";
-            positionSelect.disabled = filtered.length === 0;
-        };
-
-        if (departmentSelect && positionSelect) {
-            departmentSelect.addEventListener("change", renderPositionsByDepartment);
-            renderPositionsByDepartment();
-        }
     </script>
 }

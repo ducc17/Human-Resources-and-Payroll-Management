@@ -24,15 +24,21 @@ namespace SmartHR_Payroll.Repositories
                     Code = d.Code,
                     Name = d.Name,
                     IsDeleted = d.IsDeleted,
-                    EmployeeCount = d.Employees.Count(),
+
+                    // 1. FIX LỖI CRASH: Đếm tổng nhân viên của tất cả các "Công việc" (Job) thuộc Phòng ban này
+                    EmployeeCount = d.Jobs.SelectMany(j => j.Employees).Count(),
+
                     CreatedBy = d.CreatedBy,
                     CreatedAt = d.CreatedAt,
-                    ManagerCode = _context.Employees.Where(e => e.EmployeeId == d.ManagerId).Select(e => e.EmployeeCode).FirstOrDefault(),
-                    ManagerName = _context.Employees.Where(e => e.EmployeeId == d.ManagerId).Select(e => e.FirstName + " " + e.LastName).FirstOrDefault(),
-                    ManagerEmail = _context.Employees.Where(e => e.EmployeeId == d.ManagerId).Select(e => e.Email).FirstOrDefault()
+
+                    // 2. FIX LỖI HIỆU NĂNG: Dùng trực tiếp Navigation Property (Manager). 
+                    // EF Core sẽ tự động biên dịch thành 1 câu lệnh LEFT JOIN duy nhất dưới SQL
+                    ManagerCode = d.Manager != null ? d.Manager.EmployeeCode : null,
+                    ManagerName = d.Manager != null ? (d.Manager.FirstName + " " + d.Manager.LastName) : null,
+                    ManagerEmail = d.Manager != null ? d.Manager.Email : null
                 });
 
-            // Thêm logic sắp xếp
+            // Thêm logic sắp xếp (Giữ nguyên của bạn)
             if (sortBy == "emp_desc")
                 query = query.OrderByDescending(d => d.EmployeeCount).ThenBy(d => d.Name);
             else if (sortBy == "emp_asc")
@@ -46,26 +52,32 @@ namespace SmartHR_Payroll.Repositories
         public async Task<DepartmentDetailViewModel?> GetDepartmentDetailAsync(int id)
         {
             var detail = await _context.Departments
-                .IgnoreQueryFilters() // THÊM DÒNG NÀY ĐỂ XUYÊN QUA LỚP BẢO VỆ "XÓA MỀM"
+                .IgnoreQueryFilters() // Giữ nguyên để xuyên qua lớp bảo vệ "xóa mềm"
                 .Where(d => d.DepartmentId == id)
                 .Select(d => new DepartmentDetailViewModel
                 {
                     DepartmentId = d.DepartmentId,
                     Code = d.Code,
                     Name = d.Name,
-                    ManagerName = _context.Employees
-                        .Where(e => e.EmployeeId == d.ManagerId)
-                        .Select(e => e.FirstName + " " + e.LastName)
-                        .FirstOrDefault() ?? "Chưa bổ nhiệm",
 
-                    Employees = d.Employees.Select(e => new EmployeeInDepartmentViewModel
+                    // 1. TỐI ƯU HIỆU NĂNG: Lấy tên Manager trực tiếp qua Khóa ngoại
+                    ManagerName = d.Manager != null
+                        ? (d.Manager.FirstName + " " + d.Manager.LastName)
+                        : "Chưa bổ nhiệm",
+
+                    // 2. CHUẨN HÓA MÔ HÌNH: Đi xuyên qua bảng Jobs để lấy tất cả Employees của phòng này
+                    Employees = d.Jobs.SelectMany(j => j.Employees).Select(e => new EmployeeInDepartmentViewModel
                     {
                         EmployeeId = e.EmployeeId,
                         EmployeeCode = e.EmployeeCode,
                         FullName = e.FirstName + " " + e.LastName,
                         Email = e.Email ?? "Chưa cập nhật",
                         PhoneNumber = e.PhoneNumber ?? "Chưa cập nhật",
-                        PositionName = e.Position != null ? e.Position.Name : "Chưa phân chức vụ"
+
+                        // 3. LẤY CHỨC VỤ: Đi ngược từ Nhân viên -> Job -> Position
+                        PositionName = e.Job != null && e.Job.Position != null
+                            ? e.Job.Position.Name
+                            : "Chưa phân chức vụ"
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();

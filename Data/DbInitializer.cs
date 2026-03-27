@@ -57,10 +57,10 @@ namespace SmartHR_Payroll.Data
             // ==========================================
             // 4. BANKS (Dữ liệu mới)
             // ==========================================
-            var b1 = new Bank { BankCode = "VCB", BankName = "Ngân hàng TMCP Ngoại thương VN", ShortName = "Vietcombank", CreatedBy = systemUser };
-            var b2 = new Bank { BankCode = "BIDV", BankName = "Ngân hàng TMCP Đầu tư và Phát triển VN", ShortName = "BIDV", CreatedBy = systemUser };
-            var b3 = new Bank { BankCode = "TCB", BankName = "Ngân hàng TMCP Kỹ thương VN", ShortName = "Techcombank", CreatedBy = systemUser };
-            var b4 = new Bank { BankCode = "MB", BankName = "Ngân hàng TMCP Quân đội", ShortName = "MBBank", CreatedBy = systemUser };
+            var b1 = new Bank { BankCode = "VCB", BankName = "Ngân hàng TMCP Ngoại thương VN", ShortName = "Vietcombank", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var b2 = new Bank { BankCode = "BIDV", BankName = "Ngân hàng TMCP Đầu tư và Phát triển VN", ShortName = "BIDV", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var b3 = new Bank { BankCode = "TCB", BankName = "Ngân hàng TMCP Kỹ thương VN", ShortName = "Techcombank", CreatedBy = systemUser, UpdatedBy = systemUser };
+            var b4 = new Bank { BankCode = "MB", BankName = "Ngân hàng TMCP Quân đội", ShortName = "MBBank", CreatedBy = systemUser, UpdatedBy = systemUser };
 
             context.Banks.AddRange(b1, b2, b3, b4);
             await context.SaveChangesAsync();
@@ -69,19 +69,19 @@ namespace SmartHR_Payroll.Data
             // 5. CẤU HÌNH THUẾ & BẢO HIỂM (Dữ liệu mới)
             // ==========================================
             context.Insurances.AddRange(
-                new Insurance { Code = "BHXH", Name = "Bảo hiểm Xã hội", EmployeeRate = 8.0m, CompanyRate = 17.5m, MaxSalaryLimit = 36000000m, CreatedBy = systemUser },
-                new Insurance { Code = "BHYT", Name = "Bảo hiểm Y tế", EmployeeRate = 1.5m, CompanyRate = 3.0m, MaxSalaryLimit = 36000000m, CreatedBy = systemUser },
-                new Insurance { Code = "BHTN", Name = "Bảo hiểm Thất nghiệp", EmployeeRate = 1.0m, CompanyRate = 1.0m, MaxSalaryLimit = 88000000m, CreatedBy = systemUser }
+                new Insurance { Code = "BHXH", Name = "Bảo hiểm Xã hội", EmployeeRate = 8.0m, CompanyRate = 17.5m, MaxSalaryLimit = 36000000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new Insurance { Code = "BHYT", Name = "Bảo hiểm Y tế", EmployeeRate = 1.5m, CompanyRate = 3.0m, MaxSalaryLimit = 36000000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new Insurance { Code = "BHTN", Name = "Bảo hiểm Thất nghiệp", EmployeeRate = 1.0m, CompanyRate = 1.0m, MaxSalaryLimit = 88000000m, CreatedBy = systemUser, UpdatedBy = systemUser }
             );
 
             context.TaxBrackets.AddRange(
-                new TaxBracket { Level = 1, FromIncome = 0m, ToIncome = 5000000m, TaxRate = 5.0m, QuickSubtraction = 0m, CreatedBy = systemUser },
-                new TaxBracket { Level = 2, FromIncome = 5000000m, ToIncome = 10000000m, TaxRate = 10.0m, QuickSubtraction = 250000m, CreatedBy = systemUser },
-                new TaxBracket { Level = 3, FromIncome = 10000000m, ToIncome = 18000000m, TaxRate = 15.0m, QuickSubtraction = 750000m, CreatedBy = systemUser },
-                new TaxBracket { Level = 4, FromIncome = 18000000m, ToIncome = 32000000m, TaxRate = 20.0m, QuickSubtraction = 1650000m, CreatedBy = systemUser },
-                new TaxBracket { Level = 5, FromIncome = 32000000m, ToIncome = 52000000m, TaxRate = 25.0m, QuickSubtraction = 3250000m, CreatedBy = systemUser },
-                new TaxBracket { Level = 6, FromIncome = 52000000m, ToIncome = 80000000m, TaxRate = 30.0m, QuickSubtraction = 5850000m, CreatedBy = systemUser },
-                new TaxBracket { Level = 7, FromIncome = 80000000m, ToIncome = null, TaxRate = 35.0m, QuickSubtraction = 9850000m, CreatedBy = systemUser }
+                new TaxBracket { Level = 1, FromIncome = 0m, ToIncome = 5000000m, TaxRate = 5.0m, QuickSubtraction = 0m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 2, FromIncome = 5000000m, ToIncome = 10000000m, TaxRate = 10.0m, QuickSubtraction = 250000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 3, FromIncome = 10000000m, ToIncome = 18000000m, TaxRate = 15.0m, QuickSubtraction = 750000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 4, FromIncome = 18000000m, ToIncome = 32000000m, TaxRate = 20.0m, QuickSubtraction = 1650000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 5, FromIncome = 32000000m, ToIncome = 52000000m, TaxRate = 25.0m, QuickSubtraction = 3250000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 6, FromIncome = 52000000m, ToIncome = 80000000m, TaxRate = 30.0m, QuickSubtraction = 5850000m, CreatedBy = systemUser, UpdatedBy = systemUser },
+                new TaxBracket { Level = 7, FromIncome = 80000000m, ToIncome = null, TaxRate = 35.0m, QuickSubtraction = 9850000m, CreatedBy = systemUser, UpdatedBy = systemUser }
             );
 
             // BẮT BUỘC LƯU LẠI ĐỂ LẤY ID CHO CÁC BƯỚC SAU
@@ -90,16 +90,16 @@ namespace SmartHR_Payroll.Data
             // ==========================================
             // 6. JOBS (Định nghĩa công việc - Bảng trung gian mới)
             // ==========================================
-            var j1 = new Job { DepartmentId = d1.DepartmentId, PositionId = p1.PositionId, CreatedBy = systemUser }; // BOD - CEO
-            var j2 = new Job { DepartmentId = d2.DepartmentId, PositionId = p2.PositionId, CreatedBy = systemUser }; // HR - HRM
-            var j3 = new Job { DepartmentId = d3.DepartmentId, PositionId = p3.PositionId, CreatedBy = systemUser }; // ENG - Tech Lead
-            var j4 = new Job { DepartmentId = d3.DepartmentId, PositionId = p4.PositionId, CreatedBy = systemUser }; // ENG - Senior Dev
-            var j5 = new Job { DepartmentId = d3.DepartmentId, PositionId = p5.PositionId, CreatedBy = systemUser }; // ENG - Junior Dev
-            var j6 = new Job { DepartmentId = d3.DepartmentId, PositionId = p6.PositionId, CreatedBy = systemUser }; // ENG - QA
-            var j7 = new Job { DepartmentId = d4.DepartmentId, PositionId = p7.PositionId, CreatedBy = systemUser }; // PROD - PM
-            var j8 = new Job { DepartmentId = d4.DepartmentId, PositionId = p8.PositionId, CreatedBy = systemUser }; // PROD - UI/UX
-            var j9 = new Job { DepartmentId = d5.DepartmentId, PositionId = p9.PositionId, CreatedBy = systemUser }; // COM - Sales
-            var j10 = new Job { DepartmentId = d2.DepartmentId, PositionId = p10.PositionId, CreatedBy = systemUser };// HR - HR Exec
+            var j1 = new Job { DepartmentId = d1.DepartmentId, PositionId = p1.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // BOD - CEO
+            var j2 = new Job { DepartmentId = d2.DepartmentId, PositionId = p2.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // HR - HRM
+            var j3 = new Job { DepartmentId = d3.DepartmentId, PositionId = p3.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // ENG - Tech Lead
+            var j4 = new Job { DepartmentId = d3.DepartmentId, PositionId = p4.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // ENG - Senior Dev
+            var j5 = new Job { DepartmentId = d3.DepartmentId, PositionId = p5.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // ENG - Junior Dev
+            var j6 = new Job { DepartmentId = d3.DepartmentId, PositionId = p6.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // ENG - QA
+            var j7 = new Job { DepartmentId = d4.DepartmentId, PositionId = p7.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // PROD - PM
+            var j8 = new Job { DepartmentId = d4.DepartmentId, PositionId = p8.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // PROD - UI/UX
+            var j9 = new Job { DepartmentId = d5.DepartmentId, PositionId = p9.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser }; // COM - Sales
+            var j10 = new Job { DepartmentId = d2.DepartmentId, PositionId = p10.PositionId, CreatedBy = systemUser, UpdatedBy = systemUser };// HR - HR Exec
 
             context.Jobs.AddRange(j1, j2, j3, j4, j5, j6, j7, j8, j9, j10);
             await context.SaveChangesAsync(); // Lưu để lấy JobId
@@ -107,16 +107,16 @@ namespace SmartHR_Payroll.Data
             // ==========================================
             // 7. EMPLOYEES (Cập nhật JobId và BankId)
             // ==========================================
-            var e1 = new Employee { EmployeeCode = "EMP001", FirstName = "Nguyễn Văn", LastName = "Một", DateOfBirth = new DateOnly(1980, 1, 1), Gender = Status.Gender.Male, Email = "ceo@smarthr.com", PhoneNumber = "0901000001", Address = "Hà Nội", BankId = b1.BankId, BankAccountNumber = "1000000001", HireDate = new DateOnly(2020, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j1.JobId, RoleId = r1.RoleId, DependentCount = 2, CreatedBy = systemUser };
-            var e2 = new Employee { EmployeeCode = "EMP002", FirstName = "Trần Thị", LastName = "Hai", DateOfBirth = new DateOnly(1985, 2, 2), Gender = Status.Gender.Female, Email = "hrm@smarthr.com", PhoneNumber = "0901000002", Address = "Hà Nội", BankId = b2.BankId, BankAccountNumber = "1000000002", HireDate = new DateOnly(2020, 2, 1), Status = Status.EmployeeStatus.Active, JobId = j2.JobId, RoleId = r4.RoleId, DependentCount = 1, CreatedBy = systemUser };
-            var e3 = new Employee { EmployeeCode = "EMP003", FirstName = "Lê Văn", LastName = "Ba", DateOfBirth = new DateOnly(1990, 3, 3), Gender = Status.Gender.Male, Email = "techlead@smarthr.com", PhoneNumber = "0901000003", Address = "Hà Nội", BankId = b3.BankId, BankAccountNumber = "1000000003", HireDate = new DateOnly(2020, 3, 1), Status = Status.EmployeeStatus.Active, JobId = j3.JobId, RoleId = r2.RoleId, DependentCount = 0, CreatedBy = systemUser };
-            var e4 = new Employee { EmployeeCode = "EMP004", FirstName = "Phạm Thị", LastName = "Bốn", DateOfBirth = new DateOnly(1992, 4, 4), Gender = Status.Gender.Female, Email = "seniordev@smarthr.com", PhoneNumber = "0901000004", Address = "Đà Nẵng", BankId = b4.BankId, BankAccountNumber = "1000000004", HireDate = new DateOnly(2021, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j4.JobId, RoleId = r3.RoleId, DependentCount = 1, CreatedBy = systemUser };
-            var e5 = new Employee { EmployeeCode = "EMP005", FirstName = "Hoàng Văn", LastName = "Năm", DateOfBirth = new DateOnly(1998, 5, 5), Gender = Status.Gender.Male, Email = "juniordev@smarthr.com", PhoneNumber = "0901000005", Address = "Đà Nẵng", BankId = b1.BankId, BankAccountNumber = "1000000005", HireDate = new DateOnly(2021, 5, 1), Status = Status.EmployeeStatus.Active, JobId = j5.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser };
-            var e6 = new Employee { EmployeeCode = "EMP006", FirstName = "Vũ Thị", LastName = "Sáu", DateOfBirth = new DateOnly(1996, 6, 6), Gender = Status.Gender.Female, Email = "qa@smarthr.com", PhoneNumber = "0901000006", Address = "Đà Nẵng", BankId = b2.BankId, BankAccountNumber = "1000000006", HireDate = new DateOnly(2022, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j6.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser };
-            var e7 = new Employee { EmployeeCode = "EMP007", FirstName = "Đặng Văn", LastName = "Bảy", DateOfBirth = new DateOnly(1992, 7, 7), Gender = Status.Gender.Male, Email = "pm@smarthr.com", PhoneNumber = "0901000007", Address = "TP.HCM", BankId = b3.BankId, BankAccountNumber = "1000000007", HireDate = new DateOnly(2022, 7, 1), Status = Status.EmployeeStatus.Active, JobId = j7.JobId, RoleId = r2.RoleId, DependentCount = 2, CreatedBy = systemUser };
-            var e8 = new Employee { EmployeeCode = "EMP008", FirstName = "Bùi Thị", LastName = "Tám", DateOfBirth = new DateOnly(1998, 8, 8), Gender = Status.Gender.Female, Email = "uiux@smarthr.com", PhoneNumber = "0901000008", Address = "TP.HCM", BankId = b4.BankId, BankAccountNumber = "1000000008", HireDate = new DateOnly(2023, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j8.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser };
-            var e9 = new Employee { EmployeeCode = "EMP009", FirstName = "Đỗ Văn", LastName = "Chín", DateOfBirth = new DateOnly(1995, 9, 9), Gender = Status.Gender.Male, Email = "sales@smarthr.com", PhoneNumber = "0901000009", Address = "TP.HCM", BankId = b1.BankId, BankAccountNumber = "1000000009", HireDate = new DateOnly(2023, 9, 1), Status = Status.EmployeeStatus.Active, JobId = j9.JobId, RoleId = r3.RoleId, DependentCount = 1, CreatedBy = systemUser };
-            var e10 = new Employee { EmployeeCode = "EMP010", FirstName = "Hồ Thị", LastName = "Mười", DateOfBirth = new DateOnly(2000, 10, 10), Gender = Status.Gender.Female, Email = "hrexec@smarthr.com", PhoneNumber = "0901000010", Address = "Cần Thơ", BankId = b2.BankId, BankAccountNumber = "1000000010", HireDate = new DateOnly(2024, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j10.JobId, RoleId = r4.RoleId, DependentCount = 0, CreatedBy = systemUser };
+            var e1 = new Employee { EmployeeCode = "EMP001", FirstName = "Nguyễn Văn", LastName = "Một", DateOfBirth = new DateOnly(1980, 1, 1), Gender = Status.Gender.Male, Email = "ceo@smarthr.com", PhoneNumber = "0901000001", Address = "Hà Nội", BankId = b1.BankId, BankAccountNumber = "1000000001", HireDate = new DateOnly(2020, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j1.JobId, RoleId = r1.RoleId, DependentCount = 2, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e2 = new Employee { EmployeeCode = "EMP002", FirstName = "Trần Thị", LastName = "Hai", DateOfBirth = new DateOnly(1985, 2, 2), Gender = Status.Gender.Female, Email = "hrm@smarthr.com", PhoneNumber = "0901000002", Address = "Hà Nội", BankId = b2.BankId, BankAccountNumber = "1000000002", HireDate = new DateOnly(2020, 2, 1), Status = Status.EmployeeStatus.Active, JobId = j2.JobId, RoleId = r4.RoleId, DependentCount = 1, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e3 = new Employee { EmployeeCode = "EMP003", FirstName = "Lê Văn", LastName = "Ba", DateOfBirth = new DateOnly(1990, 3, 3), Gender = Status.Gender.Male, Email = "techlead@smarthr.com", PhoneNumber = "0901000003", Address = "Hà Nội", BankId = b3.BankId, BankAccountNumber = "1000000003", HireDate = new DateOnly(2020, 3, 1), Status = Status.EmployeeStatus.Active, JobId = j3.JobId, RoleId = r2.RoleId, DependentCount = 0, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e4 = new Employee { EmployeeCode = "EMP004", FirstName = "Phạm Thị", LastName = "Bốn", DateOfBirth = new DateOnly(1992, 4, 4), Gender = Status.Gender.Female, Email = "seniordev@smarthr.com", PhoneNumber = "0901000004", Address = "Đà Nẵng", BankId = b4.BankId, BankAccountNumber = "1000000004", HireDate = new DateOnly(2021, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j4.JobId, RoleId = r3.RoleId, DependentCount = 1, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e5 = new Employee { EmployeeCode = "EMP005", FirstName = "Hoàng Văn", LastName = "Năm", DateOfBirth = new DateOnly(1998, 5, 5), Gender = Status.Gender.Male, Email = "juniordev@smarthr.com", PhoneNumber = "0901000005", Address = "Đà Nẵng", BankId = b1.BankId, BankAccountNumber = "1000000005", HireDate = new DateOnly(2021, 5, 1), Status = Status.EmployeeStatus.Active, JobId = j5.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e6 = new Employee { EmployeeCode = "EMP006", FirstName = "Vũ Thị", LastName = "Sáu", DateOfBirth = new DateOnly(1996, 6, 6), Gender = Status.Gender.Female, Email = "qa@smarthr.com", PhoneNumber = "0901000006", Address = "Đà Nẵng", BankId = b2.BankId, BankAccountNumber = "1000000006", HireDate = new DateOnly(2022, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j6.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e7 = new Employee { EmployeeCode = "EMP007", FirstName = "Đặng Văn", LastName = "Bảy", DateOfBirth = new DateOnly(1992, 7, 7), Gender = Status.Gender.Male, Email = "pm@smarthr.com", PhoneNumber = "0901000007", Address = "TP.HCM", BankId = b3.BankId, BankAccountNumber = "1000000007", HireDate = new DateOnly(2022, 7, 1), Status = Status.EmployeeStatus.Active, JobId = j7.JobId, RoleId = r2.RoleId, DependentCount = 2, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e8 = new Employee { EmployeeCode = "EMP008", FirstName = "Bùi Thị", LastName = "Tám", DateOfBirth = new DateOnly(1998, 8, 8), Gender = Status.Gender.Female, Email = "uiux@smarthr.com", PhoneNumber = "0901000008", Address = "TP.HCM", BankId = b4.BankId, BankAccountNumber = "1000000008", HireDate = new DateOnly(2023, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j8.JobId, RoleId = r3.RoleId, DependentCount = 0, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e9 = new Employee { EmployeeCode = "EMP009", FirstName = "Đỗ Văn", LastName = "Chín", DateOfBirth = new DateOnly(1995, 9, 9), Gender = Status.Gender.Male, Email = "sales@smarthr.com", PhoneNumber = "0901000009", Address = "TP.HCM", BankId = b1.BankId, BankAccountNumber = "1000000009", HireDate = new DateOnly(2023, 9, 1), Status = Status.EmployeeStatus.Active, JobId = j9.JobId, RoleId = r3.RoleId, DependentCount = 1, CreatedBy = systemUser, UpdatedBy = systemUser };
+            var e10 = new Employee { EmployeeCode = "EMP010", FirstName = "Hồ Thị", LastName = "Mười", DateOfBirth = new DateOnly(2000, 10, 10), Gender = Status.Gender.Female, Email = "hrexec@smarthr.com", PhoneNumber = "0901000010", Address = "Cần Thơ", BankId = b2.BankId, BankAccountNumber = "1000000010", HireDate = new DateOnly(2024, 1, 1), Status = Status.EmployeeStatus.Active, JobId = j10.JobId, RoleId = r4.RoleId, DependentCount = 0, CreatedBy = systemUser, UpdatedBy = systemUser };
 
             context.Employees.AddRange(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10);
             await context.SaveChangesAsync();
@@ -693,7 +693,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 46730000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps2 = new Payslip
@@ -710,7 +711,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 30050000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps3 = new Payslip
@@ -727,7 +729,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 25050000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps4 = new Payslip
@@ -744,7 +747,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 39500000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps5 = new Payslip
@@ -761,7 +765,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 15150000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Dữ liệu tham khảo",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps6 = new Payslip
@@ -778,7 +783,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 13400000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps7 = new Payslip
@@ -795,7 +801,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 9900000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps8 = new Payslip
@@ -812,7 +819,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 18150000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps9 = new Payslip
@@ -829,7 +837,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 8600000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             var ps10 = new Payslip
@@ -846,7 +855,8 @@ namespace SmartHR_Payroll.Data
                 NetSalary = 9050000m,
                 PaymentDate = new DateTime(2026, 1, 31),
                 Remarks = "Đã chốt lương",
-                CreatedBy = systemUser
+                CreatedBy = systemUser,
+                UpdatedBy = systemUser
             };
 
             context.Payslips.AddRange(ps1, ps2, ps3, ps4, ps5, ps6, ps7, ps8, ps9, ps10);

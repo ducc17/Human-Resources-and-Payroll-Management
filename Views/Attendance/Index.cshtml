@@ -98,8 +98,8 @@
                                     <td class="fw-bold text-primary">@item.Employee?.EmployeeCode</td>
                                     <td class="text-start fw-bold">@item.Employee?.FullName</td>
 
-                                    <td class="text-start"><span class="badge bg-secondary">@(item.Employee?.Department?.Name ?? "N/A")</span></td>
-                                    <td class="text-start text-muted small">@(item.Employee?.Position?.Name ?? "N/A")</td>
+                                    <td class="text-start"><span class="badge bg-secondary">@(item.Employee?.Job.Department?.Name ?? "N/A")</span></td>
+                                    <td class="text-start text-muted small">@(item.Employee?.Job.Position?.Name ?? "N/A")</td>
 
                                     <td>@item.Date.ToString("dd/MM/yyyy")</td>
                                     <td class="text-success fw-bold">@(item.CheckInTime?.ToString(@"hh\:mm") ?? "--:--")</td>

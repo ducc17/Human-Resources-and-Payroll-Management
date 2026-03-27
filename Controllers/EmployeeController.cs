@@ -37,7 +37,7 @@ namespace SmartHR_Payroll.Controllers
                 DateOfBirth = DateOnly.FromDateTime(DateTime.Today)
             };
 
-            await PopulateSelectionsAsync(model.DepartmentId);
+            await PopulateSelectionsAsync();
             return View(model);
         }
 
@@ -46,8 +46,6 @@ namespace SmartHR_Payroll.Controllers
         public async Task<IActionResult> Create(Employee model)
         {
 
-            ModelState.Remove("DepartmentId");
-            ModelState.Remove("PositionId");
             ModelState.Remove("RoleId");
 
             ModelState.Remove(nameof(model.EmployeeCode));
@@ -57,11 +55,8 @@ namespace SmartHR_Payroll.Controllers
             ModelState.Remove(nameof(model.PhoneNumber));
             ModelState.Remove(nameof(model.Address)); 
             ModelState.Remove(nameof(model.BankAccountNumber));
-            ModelState.Remove(nameof(model.BankName));
-
-
-            ModelState.Remove(nameof(model.Department));
-            ModelState.Remove(nameof(model.Position));
+            ModelState.Remove(nameof(model.Bank));
+            ModelState.Remove(nameof(model.Job));
             ModelState.Remove(nameof(model.Role));
 
 
@@ -79,7 +74,7 @@ namespace SmartHR_Payroll.Controllers
 
             if (!ModelState.IsValid)
             {
-                await PopulateSelectionsAsync(model.DepartmentId);
+                await PopulateSelectionsAsync();
                 return View(model);
             }
 
@@ -92,7 +87,7 @@ namespace SmartHR_Payroll.Controllers
             if (!result.Success)
             {
                 ModelState.AddModelError(string.Empty, result.Message);
-                await PopulateSelectionsAsync(model.DepartmentId);
+                await PopulateSelectionsAsync();
                 return View(model);
             }
 
@@ -152,32 +147,21 @@ namespace SmartHR_Payroll.Controllers
         }
 
 
-        private async Task PopulateSelectionsAsync(int? selectedDepartmentId = null)
+        private async Task PopulateSelectionsAsync()
         {
             var lookups = await _employeeService.GetCreateEmployeeLookupsAsync();
 
-            ViewBag.Departments = new SelectList(lookups.Departments.Select(d => new
+            ViewBag.Jobs = new SelectList(lookups.Jobs.Select(j => new
             {
-                d.DepartmentId,
-                DisplayText = $"{d.Code} - {d.Name}"
-            }), "DepartmentId", "DisplayText");
+                j.JobId,
+                DisplayText = $"{j.Department.Code} - {j.Department.Name} | {j.Position.Code} - {j.Position.Name}"
+            }), "JobId", "DisplayText");
 
-            var filteredPositions = lookups.Positions
-                .Where(p => selectedDepartmentId.HasValue && selectedDepartmentId.Value > 0 && p.DepartmentId == selectedDepartmentId.Value)
-                .Select(p => new
-                {
-                    p.PositionId,
-                    DisplayText = $"{p.Code} - {p.Name}"
-                });
-
-            ViewBag.Positions = new SelectList(filteredPositions, "PositionId", "DisplayText");
-
-            ViewBag.PositionOptions = lookups.Positions.Select(p => new
+            ViewBag.Banks = new SelectList(lookups.Banks.Select(b => new
             {
-                p.PositionId,
-                p.DepartmentId,
-                DisplayText = $"{p.Code} - {p.Name}"
-            }).ToList();
+                b.BankId,
+                DisplayText = $"{b.ShortName} - {b.BankName}"
+            }), "BankId", "DisplayText");
 
             ViewBag.Roles = new SelectList(lookups.Roles, "RoleId", "Name");
         }

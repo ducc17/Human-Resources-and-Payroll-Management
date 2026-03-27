@@ -16,10 +16,12 @@ namespace SmartHR_Payroll.Repositories
 
         public async Task<Employee?> GetEmployeeProfileAsync(int employeeId)
         {
-            // Include để lấy luôn thông tin tên Phòng ban và Vị trí thay vì chỉ lấy ID
             return await _context.Employees
-                // .Include(e => e.Department) // Bỏ comment 2 dòng này nếu bạn đã setup Navigation Property trong Model
-                // .Include(e => e.Position)
+                .Include(e => e.Bank)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Department)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Position)
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
         }
 
@@ -27,8 +29,11 @@ namespace SmartHR_Payroll.Repositories
         {
             return await _context.Employees
                 .IgnoreQueryFilters()
-                .Include(e => e.Department)
-                .Include(e => e.Position)
+                .Include(e => e.Bank)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Department)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Position)
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
         }
 
@@ -36,8 +41,11 @@ namespace SmartHR_Payroll.Repositories
         {
             var query = _context.Employees
                 .IgnoreQueryFilters()
-                .Include(e => e.Department)
-                .Include(e => e.Position)
+                .Include(e => e.Bank)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Department)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Position)
                 .OrderByDescending(e => e.CreatedAt)
                 .AsQueryable();
 
@@ -111,6 +119,23 @@ namespace SmartHR_Payroll.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Job>> GetJobsAsync()
+        {
+            return await _context.Jobs
+                .Include(j => j.Department)
+                .Include(j => j.Position)
+                .OrderBy(j => j.Department.Name)
+                .ThenBy(j => j.Position.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Bank>> GetBanksAsync()
+        {
+            return await _context.Banks
+                .OrderBy(b => b.BankName)
+                .ToListAsync();
+        }
+
         public async Task AddEmployeeAsync(Employee employee)
         {
             await _context.Employees.AddAsync(employee);
@@ -119,8 +144,11 @@ namespace SmartHR_Payroll.Repositories
         public async Task<Employee?> GetByIdAsync(int id)
         {
             return await _context.Employees
-                .Include(e => e.Department) // Kéo theo data Phòng ban
-                .Include(e => e.Position)   // Kéo theo data Vị trí
+                .Include(e => e.Bank)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Department)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Position)
                 .FirstOrDefaultAsync(e => e.EmployeeId == id);
         }
     }

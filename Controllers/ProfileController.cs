@@ -35,14 +35,14 @@ namespace SmartHR_Payroll.Controllers
                 FullName = emp.FirstName + " " + emp.LastName,
 
                 // Đây là 2 dòng quan trọng nhất để fix lỗi hiển thị sai:
-                PositionName = emp.Position?.Name ?? "Chưa cập nhật",
-                DepartmentName = emp.Department?.Name ?? "Chưa cập nhật",
+                PositionName = emp.Job.Position?.Name ?? "Chưa cập nhật",
+                DepartmentName = emp.Job.Department?.Name ?? "Chưa cập nhật",
 
                 HireDate = emp.HireDate,
                 Email = emp.Email,
                 PhoneNumber = emp.PhoneNumber ?? "Chưa cập nhật",
                 Address = emp.Address ?? "Chưa cập nhật",
-                BankName = emp.BankName,
+                BankName = emp.Bank.BankName,
                 BankAccountNumber = emp.BankAccountNumber
             };
 
