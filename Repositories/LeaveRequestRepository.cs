@@ -81,7 +81,7 @@ namespace SmartHR_Payroll.Repositories
         {
             return await _context.LeaveRequests
                 .Include(x => x.Employee)
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .FirstOrDefaultAsync(x => x.LeaveTypeId == id);
         }
 
         public async Task AddAsync(LeaveRequest entity)

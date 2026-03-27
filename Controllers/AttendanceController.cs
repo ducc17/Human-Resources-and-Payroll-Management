@@ -15,32 +15,29 @@ namespace SmartHR_Payroll.Controllers
             _employeeService = employeeService;
         }
 
-        // Trang chủ của Attendance (Khắc phục lỗi 404 khi vào /Attendance)
+
         [HttpGet]
-        // Thêm tham số int? departmentId vào Action
-        public async Task<IActionResult> Index(string? search, string? fromDate, string? toDate, string? status, int? departmentId)
+        public async Task<IActionResult> Index(string? search, int? departmentId, DateOnly? fromDate, DateOnly? toDate, string? status, int page = 1)
         {
-            DateOnly? from = null;
-            DateOnly? to = null;
+            int pageSize = 10;
 
-            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
-            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+            // 1. Gọi Service (Giao phó toàn bộ việc lọc, gom nhóm và phân trang cho Service)
+            var result = await _attendanceService.GetAllAttendancesAsync(search, fromDate, toDate, status, departmentId, page, pageSize);
 
-            // Truyền tham số departmentId xuống Service
-            var allAttendances = await _attendanceService.GetAllAttendancesAsync(search, from, to, status, departmentId);
+            // 2. Nhận kết quả và đẩy ra ViewBags để View hiển thị thanh phân trang & giữ bộ lọc
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = result.TotalPages; // Lấy TotalPages từ Service tính sẵn
 
-            // Lấy danh sách các phòng ban từ DB
-            var departments = await _attendanceService.GetAllDepartmentsAsync();
-
-            // Lưu lại trạng thái để đẩy lên giao diện
             ViewBag.Search = search;
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
-            ViewBag.Status = status;
             ViewBag.DepartmentId = departmentId;
-            ViewBag.Departments = departments; // Truyền List Phòng ban sang View
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
 
-            return View(allAttendances);
+            ViewBag.Departments = await _attendanceService.GetAllDepartmentsAsync();
+
+            // 3. Điều hướng trả về Data đã được cắt gọn
+            return View(result.Items);
         }
 
         // Trang hiển thị Form Import

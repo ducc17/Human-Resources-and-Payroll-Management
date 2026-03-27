@@ -11,6 +11,16 @@ namespace SmartHR_Payroll.Services.IServices
 
         Task<List<Attendance>> GetMyAttendanceHistoryAsync(int employeeId, DateOnly? fromDate, DateOnly? toDate, string? status);
         Task<List<Department>> GetAllDepartmentsAsync();
-        Task<List<Attendance>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId);
+        // Đổi dòng cũ thành:
+        Task<List<DailyAttendanceViewModel>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId);
+        // Trong IAttendanceService.cs
+        Task<(List<DailyAttendanceViewModel> Items, int TotalPages)> GetAllAttendancesAsync(
+            string? search,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? status,
+            int? departmentId,
+            int page = 1,
+            int pageSize = 10);
     }
 }
