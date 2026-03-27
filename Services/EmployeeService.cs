@@ -202,12 +202,19 @@ namespace SmartHR_Payroll.Services
 
         }
 
-        public async Task<EmployeeListViewModel> GetEmployeesPagedAsync(int page, int pageSize)
+        public async Task<EmployeeListViewModel> GetEmployeesPagedAsync(
+            int page,
+            int pageSize,
+            int? departmentId,
+            string keyword,
+            string status)
         {
             if (page < 1) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var (employees, totalCount) = await _employeeRepository.GetEmployeesPagedAsync(page, pageSize);
+            var (employees, totalCount) = await _employeeRepository
+                .GetEmployeesPagedAsync(page, pageSize, departmentId, keyword, status);
+
             var totalPages = totalCount == 0 ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
             return new EmployeeListViewModel

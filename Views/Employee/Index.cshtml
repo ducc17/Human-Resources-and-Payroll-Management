@@ -2,205 +2,432 @@
 @using SmartHR_Payroll.Models
 
 @{
-    ViewData["Title"] = "Danh sách nhân viên";
+	ViewData["Title"] = "Danh sách nhân viên";
 }
 
 <style>
-    .employee-table {
-        min-width: 1800px;
-    }
+	.employee-table {
+		width: 100%;
+		table-layout: auto;
+	}
 
-    .employee-table thead th {
-        background: #f8fafc;
-        color: #334155;
-        font-weight: 700;
-        font-size: 0.9rem;
-        white-space: nowrap;
-        border-bottom: 1px solid #dbe4ee;
-        vertical-align: middle;
-    }
+	.employee-table thead th {
+		background: #f8fafc;
+		color: #334155;
+		font-weight: 700;
+		font-size: 0.9rem;
+		white-space: nowrap;
+		border-bottom: 1px solid #dbe4ee;
+		vertical-align: middle;
+	}
 
-    .employee-table tbody td {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
+	.employee-table tbody td {
+		white-space: nowrap;
+		vertical-align: middle;
+	}
 
-    .employee-table tbody tr:hover {
-        background-color: #f8fbff;
-    }
+	.employee-table tbody tr:hover {
+		background-color: #f8fbff;
+	}
 
-    .action-icon-btn {
-        width: 2rem;
-        height: 2rem;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
+	.action-icon-btn {
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/* FILTER */
+	.column-filter {
+		position: relative;
+	}
+
+	.filter-btn {
+		padding: 8px 16px;
+		border: 1px solid #d1d5db;
+		background: white;
+		border-radius: 8px;
+		font-weight: 500;
+		transition: all 0.2s ease;
+	}
+
+	.filter-btn:hover {
+		background: #f1f5f9;
+		border-color: #cbd5e1;
+	}
+
+	.filter-panel {
+		display: none;
+		position: absolute;
+		top: 110%;
+		right: 0;
+		width: 320px;
+		background: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 10px;
+		box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+		padding: 12px;
+		z-index: 100;
+	}
+
+	.filter-group {
+		margin-bottom: 10px;
+	}
+
+	.filter-group label {
+		display: block;
+	}
+
+	.filter-title {
+		font-weight: 600;
+		margin-bottom: 4px;
+	}
+
 </style>
 
 <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="fw-bold mb-1"><i class="fa-solid fa-users text-primary me-2"></i>Danh sách nhân viên</h4>
-            <p class="text-muted mb-3">Quản lý toàn bộ nhân viên, ban account mềm và xem hợp đồng theo nhân viên.</p>
-        </div>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fa-solid fa-user-plus me-1"></i>Thêm nhân viên
-        </a>
-    </div>
+	<div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+		<div>
+			<h4 class="fw-bold mb-1">
+				<i class="fa-solid fa-users text-primary me-2"></i>
+				Danh sách nhân viên
+			</h4>
 
-    <div class="card-body pt-2">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-        }
+			@if (User.IsInRole("Manager"))
+			{
+				<p class="text-muted mb-3">
+					Xem và quản lý nhân viên thuộc phòng ban của bạn.
+				</p>
+			}
+			else
+			{
+				<p class="text-muted mb-3">
+					Quản lý toàn bộ nhân viên, ban account mềm và xem hợp đồng theo nhân viên.
+				</p>
+			}
+		</div>
 
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-        }
+		@if (User.IsInRole("Admin") || User.IsInRole("HR"))
+		{
+			<a asp-action="Create" class="btn btn-primary">
+				<i class="fa-solid fa-user-plus me-1"></i>
+				Thêm nhân viên
+			</a>
+		}
+	</div>
 
-        @if (!Model.Employees.Any())
-        {
-            <div class="alert alert-info mb-0">Chưa có nhân viên nào.</div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle employee-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã NV</th>
-                            <th>Họ tên</th>
-                            <th>Ngày sinh</th>
-                            <th>Ngày vào làm</th>
-                            <th>Giới tính</th>
-                            <th>Địa chỉ</th>
-                            <th>Ngày tạo</th>
-                            <th>Người tạo</th>
-                            <th>Ngày cập nhật</th>
-                            <th>Người cập nhật</th>
-                            <th>Phòng ban</th>
-                            <th>Chức vụ</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var employee in Model.Employees)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@employee.EmployeeCode</td>
-                                <td>@employee.FullName</td>
-                                <td>@employee.DateOfBirth.ToString("dd/MM/yyyy")</td>
-                                <td>@employee.HireDate.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    @if (employee.Gender == Status.Gender.Male)
-                                    {
-                                        <span>Nam</span>
-                                    }
-                                    else if (employee.Gender == Status.Gender.Female)
-                                    {
-                                        <span>Nữ</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Khác</span>
-                                    }
-                                </td>
-                                <td>@employee.Address</td>
-                                <td>@employee.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@employee.CreatedBy</td>
-                                <td>@(employee.UpdatedAt.HasValue ? employee.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "-")</td>
-                                <td>@(string.IsNullOrWhiteSpace(employee.UpdatedBy) ? "-" : employee.UpdatedBy)</td>
-                                <td>@employee.DepartmentName</td>
-                                <td>@employee.PositionName</td>
-                                <td>@employee.Email</td>
-                                <td>@employee.PhoneNumber</td>
-                                <td>
-                                    @if (employee.Status == Status.EmployeeStatus.Active)
-                                    {
-                                        <span class="badge bg-success">Đang làm việc</span>
-                                    }
-                                    else if (employee.Status == Status.EmployeeStatus.OnLeave)
-                                    {
-                                        <span class="badge bg-warning text-dark">Nghỉ phép</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Đã nghỉ việc</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a asp-action="Contracts"
-                                           asp-route-employeeId="@employee.EmployeeId"
-                                           class="btn btn-outline-primary btn-sm action-icon-btn"
-                                           title="Xem hợp đồng">
-                                            <i class="fa-solid fa-file-contract"></i>
-                                        </a>
+	<div class="px-4 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-                                        @if (employee.Status == Status.EmployeeStatus.Terminated)
-                                        {
-                                            <form asp-action="Unban" method="post" onsubmit="return confirm('Bạn có chắc muốn mở khóa account nhân viên này?');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="employeeId" value="@employee.EmployeeId" />
-                                                <input type="hidden" name="page" value="@Model.CurrentPage" />
-                                                <button type="submit"
-                                                        class="btn btn-outline-success btn-sm action-icon-btn"
-                                                        title="Unban account">
-                                                    <i class="fa-solid fa-user-check"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <form asp-action="Ban" method="post" onsubmit="return confirm('Bạn có chắc muốn ban account nhân viên này?');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="employeeId" value="@employee.EmployeeId" />
-                                                <input type="hidden" name="page" value="@Model.CurrentPage" />
-                                                <button type="submit"
-                                                        class="btn btn-outline-danger btn-sm action-icon-btn"
-                                                        title="Ban account">
-                                                    <i class="fa-solid fa-user-slash"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+		<!-- LEFT: SEARCH -->
+		<form method="get" class="d-flex gap-2">
+			<input type="text" name="keyword"
+				   value="@Context.Request.Query["keyword"]"
+				   class="form-control"
+				   placeholder="Tìm kiếm..."
+				   style="width: 240px;" />
 
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted small">
-                    Tổng: <strong>@Model.TotalCount</strong> nhân viên
-                </div>
+			<select name="status" class="form-select" style="width: 160px;">
+				<option value="">Trạng thái</option>
 
-                <nav aria-label="Phân trang nhân viên">
-                    <ul class="pagination mb-0">
-                        <li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
-                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)">Trước</a>
-                        </li>
+				<option value="Active"
+						selected="@(Context.Request.Query["status"] == "Active")">
+					Đang làm việc
+				</option>
 
-                        @for (var i = 1; i <= Model.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-                            </li>
-                        }
+				<option value="OnLeave"
+						selected="@(Context.Request.Query["status"] == "OnLeave")">
+					Nghỉ phép
+				</option>
 
-                        <li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
-                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)">Sau</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        }
-    </div>
+				<option value="Inactive"
+						selected="@(Context.Request.Query["status"] == "Inactive")">
+					Đã nghỉ việc
+				</option>
+			</select>
+
+			<button type="submit" class="btn btn-primary px-3">
+				Tìm
+			</button>
+
+			<a asp-action="Index"
+			   class="btn btn-outline-secondary px-3">
+				Reset
+			</a>
+		</form>
+
+		<!-- RIGHT: FILTER COLUMN -->
+		<div class="column-filter">
+			<button id="filterBtn"
+					type="button"
+					onclick="toggleFilterPanel()"
+					class="btn btn-outline-secondary">
+				Tùy chỉnh cột
+			</button>
+
+			<div id="filterPanel" class="filter-panel">
+
+				<div class="filter-group">
+					<div class="filter-title">Nhóm Chính</div>
+					<label><input type="checkbox" checked disabled> Mã NV</label>
+					<label><input type="checkbox" checked disabled> Họ tên</label>
+					<label><input type="checkbox" checked disabled> Phòng ban</label>
+					<label><input type="checkbox" checked disabled> Trạng thái</label>
+				</div>
+
+				<div class="filter-group">
+					<div class="filter-title">Nhóm Phụ</div>
+
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('dob')"> Ngày sinh</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('hire')"> Ngày vào làm</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('gender')"> Giới tính</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('address')"> Địa chỉ</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('createdAt')"> Ngày tạo</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('createdBy')"> Người tạo</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('updatedAt')"> Ngày cập nhật</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('updatedBy')"> Người cập nhật</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('position')"> Chức vụ</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('email')"> Email</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('phone')"> SĐT</label>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="card-body pt-2">
+		@if (TempData["SuccessMessage"] != null)
+		{
+			<div class="alert alert-success">@TempData["SuccessMessage"]</div>
+		}
+
+		@if (TempData["ErrorMessage"] != null)
+		{
+			<div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+		}
+
+		@if (!Model.Employees.Any())
+		{
+			<div class="alert alert-info mb-0">Chưa có nhân viên nào.</div>
+		}
+		else
+		{
+			<div class="table-responsive">
+				<table class="table table-hover align-middle employee-table">
+					<thead class="table-light">
+						<tr>
+							<th data-col="code">Mã NV</th>
+							<th data-col="name">Họ tên</th>
+							<th data-col="dob">Ngày sinh</th>
+							<th data-col="hire">Ngày vào làm</th>
+							<th data-col="gender">Giới tính</th>
+							<th data-col="address">Địa chỉ</th>
+							<th data-col="createdAt">Ngày tạo</th>
+							<th data-col="createdBy">Người tạo</th>
+							<th data-col="updatedAt">Ngày cập nhật</th>
+							<th data-col="updatedBy">Người cập nhật</th>
+							<th data-col="department">Phòng ban</th>
+							<th data-col="position">Chức vụ</th>
+							<th data-col="email">Email</th>
+							<th data-col="phone">Số điện thoại</th>
+							<th data-col="status">Trạng thái</th>
+							<th data-col="action" class="text-end">Thao tác</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var employee in Model.Employees)
+						{
+							<tr>
+								<td data-col="code" class="fw-semibold">@employee.EmployeeCode</td>
+								<td data-col="name">@employee.FullName</td>
+								<td data-col="dob">@employee.DateOfBirth.ToString("dd/MM/yyyy")</td>
+								<td data-col="hire">@employee.HireDate.ToString("dd/MM/yyyy")</td>
+								<td data-col="gender">
+									@if (employee.Gender == Status.Gender.Male)
+									{
+										<span>Nam</span>
+									}
+									else if (employee.Gender == Status.Gender.Female)
+									{
+										<span>Nữ</span>
+									}
+									else
+									{
+										<span>Khác</span>
+									}
+								</td>
+								<td data-col="address">@employee.Address</td>
+								<td data-col="createdAt">@employee.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+								<td data-col="createdBy">@employee.CreatedBy</td>
+								<td data-col="updatedAt">@(employee.UpdatedAt.HasValue? employee.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "-")</td>
+								<td data-col="updatedBy">@(string.IsNullOrWhiteSpace(employee.UpdatedBy) ? "-" : employee.UpdatedBy)</td>
+								<td data-col="department">@employee.DepartmentName</td>
+								<td data-col="position">@employee.PositionName</td>
+								<td data-col="email">@employee.Email</td>
+								<td data-col="phone">@employee.PhoneNumber</td>
+								<td data-col="status">
+									@if (employee.Status == Status.EmployeeStatus.Active)
+									{
+										<span class="badge bg-success">Đang làm việc</span>
+									}
+									else if (employee.Status == Status.EmployeeStatus.OnLeave)
+									{
+										<span class="badge bg-warning text-dark">Nghỉ phép</span>
+									}
+									else
+									{
+										<span class="badge bg-secondary">Đã nghỉ việc</span>
+									}
+								</td>
+								<td data-col="action">
+									<div class="d-flex justify-content-end gap-2">
+										<a asp-action="Contracts"
+										   asp-route-employeeId="@employee.EmployeeId"
+										   class="btn btn-outline-primary btn-sm action-icon-btn"
+										   title="Xem hợp đồng">
+											<i class="fa-solid fa-file-contract"></i>
+										</a>
+
+										@if (User.IsInRole("Admin") || User.IsInRole("HR"))
+										{
+											@if (employee.Status == Status.EmployeeStatus.Terminated)
+											{
+												<form asp-action="Unban" method="post" onsubmit="return confirm('Bạn có chắc muốn mở khóa account nhân viên này?');">
+													@Html.AntiForgeryToken()
+													<input type="hidden" name="employeeId" value="@employee.EmployeeId" />
+													<input type="hidden" name="page" value="@Model.CurrentPage" />
+													<button type="submit"
+															class="btn btn-outline-success btn-sm action-icon-btn"
+															title="Unban account">
+														<i class="fa-solid fa-user-check"></i>
+													</button>
+												</form>
+											}
+											else
+											{
+												<form asp-action="Ban" method="post" onsubmit="return confirm('Bạn có chắc muốn ban account nhân viên này?');">
+													@Html.AntiForgeryToken()
+													<input type="hidden" name="employeeId" value="@employee.EmployeeId" />
+													<input type="hidden" name="page" value="@Model.CurrentPage" />
+													<button type="submit"
+															class="btn btn-outline-danger btn-sm action-icon-btn"
+															title="Ban account">
+														<i class="fa-solid fa-user-slash"></i>
+													</button>
+												</form>
+											}
+										}
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="d-flex justify-content-between align-items-center mt-3">
+				<div class="text-muted small">
+					Tổng: <strong>@Model.TotalCount</strong> nhân viên
+				</div>
+
+				<nav>
+					<ul class="pagination mb-0">
+
+						<!-- PREV -->
+						<li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
+							<a class="page-link"
+							   asp-action="Index"
+							   asp-route-page="@(Model.CurrentPage - 1)"
+							   asp-route-keyword="@Context.Request.Query["keyword"]"
+							   asp-route-status="@Context.Request.Query["status"]">
+								Trước
+							</a>
+						</li>
+
+						<!-- NUMBER -->
+						@for (var i = 1; i <= Model.TotalPages; i++)
+						{
+							<li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+								<a class="page-link"
+								   asp-action="Index"
+								   asp-route-page="@i"
+								   asp-route-keyword="@Context.Request.Query["keyword"]"
+								   asp-route-status="@Context.Request.Query["status"]">
+									@i
+								</a>
+							</li>
+						}
+
+						<!-- NEXT -->
+						<li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+							<a class="page-link"
+							   asp-action="Index"
+							   asp-route-page="@(Model.CurrentPage + 1)"
+							   asp-route-keyword="@Context.Request.Query["keyword"]"
+							   asp-route-status="@Context.Request.Query["status"]">
+								Sau
+							</a>
+						</li>
+
+					</ul>
+				</nav>
+			</div>
+		}
+	</div>
 </div>
+
+<script>
+	function toggleColumn(col) {
+		const elements = document.querySelectorAll(`[data-col="${col}"]`);
+
+		elements.forEach(el => {
+			const isHidden = window.getComputedStyle(el).display === "none";
+			el.style.display = isHidden ? "" : "none";
+		});
+
+		saveColumns();
+	}
+
+	function saveColumns() {
+		const hidden = [];
+
+		document.querySelectorAll("th[data-col]").forEach(th => {
+			if (th.style.display === "none") {
+				hidden.push(th.getAttribute("data-col"));
+			}
+		});
+
+		localStorage.setItem("hiddenCols", JSON.stringify(hidden));
+	}
+
+	function loadColumns() {
+		const hidden = JSON.parse(localStorage.getItem("hiddenCols") || "[]");
+
+		hidden.forEach(col => {
+			if (["code", "name", "department", "status"].includes(col)) return;
+
+			document.querySelectorAll(`[data-col="${col}"]`)
+				.forEach(el => el.style.display = "none");
+
+			const checkbox = document.querySelector(`input[onchange="toggleColumn('${col}')"]`);
+			if (checkbox) checkbox.checked = false;
+		});
+	}
+
+	function toggleFilterPanel() {
+		const panel = document.getElementById("filterPanel");
+		panel.style.display = (panel.style.display === "block") ? "none" : "block";
+	}
+
+	document.addEventListener("click", function (e) {
+		const panel = document.getElementById("filterPanel");
+		const btn = document.getElementById("filterBtn");
+
+		if (!panel.contains(e.target) && !btn.contains(e.target)) {
+			panel.style.display = "none";
+		}
+	});
+
+	window.addEventListener("DOMContentLoaded", loadColumns);
+</script>

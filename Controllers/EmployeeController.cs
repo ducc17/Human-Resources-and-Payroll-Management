@@ -6,9 +6,10 @@ using SmartHR_Payroll.Services.IServices;
 using SmartHR_Payroll.ViewModels.Employee;
 using System.Security.Claims;
 
+
 namespace SmartHR_Payroll.Controllers
 {
-    [Authorize(Roles = "Admin,HR")]
+    [Authorize]
     public class EmployeeController : Controller
     {
         private readonly IEmployeeService _employeeService;
@@ -18,15 +19,42 @@ namespace SmartHR_Payroll.Controllers
             _employeeService = employeeService;
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> Index(int page = 1)
+        [Authorize(Roles = "Admin,HR,Manager")]
+        public async Task<IActionResult> Index(
+                int page = 1,
+                string keyword = "",
+                string status = ""
+            )
         {
             const int pageSize = 10;
-            var model = await _employeeService.GetEmployeesPagedAsync(page, pageSize);
+            int? departmentId = null;
+
+            // Manager chỉ xem phòng của mình
+            if (User.IsInRole("Manager"))
+            {
+                var claim = User.FindFirst("DepartmentId");
+
+                if (claim != null && int.TryParse(claim.Value, out int deptId))
+                {
+                    departmentId = deptId;
+                }
+            }
+
+            var model = await _employeeService.GetEmployeesPagedAsync(
+                page,
+                pageSize,
+                departmentId,
+                keyword,
+                status
+            );
+
             return View(model);
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> Create()
         {
             var model = new Employee
@@ -43,6 +71,7 @@ namespace SmartHR_Payroll.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> Create(Employee model)
         {
 
@@ -97,6 +126,7 @@ namespace SmartHR_Payroll.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> Ban(int employeeId, int page = 1)
         {
             var actor = User.FindFirstValue(ClaimTypes.Email)
@@ -116,6 +146,7 @@ namespace SmartHR_Payroll.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> Unban(int employeeId, int page = 1)
         {
             var actor = User.FindFirstValue(ClaimTypes.Email)
@@ -134,6 +165,7 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,HR,Manager")]
         public async Task<IActionResult> Contracts(int employeeId)
         {
             var model = await _employeeService.GetEmployeeContractsAsync(employeeId);
@@ -146,7 +178,7 @@ namespace SmartHR_Payroll.Controllers
             return View(model);
         }
 
-
+        [Authorize(Roles = "Admin,HR")]
         private async Task PopulateSelectionsAsync()
         {
             var lookups = await _employeeService.GetCreateEmployeeLookupsAsync();
