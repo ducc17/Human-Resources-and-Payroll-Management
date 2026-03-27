@@ -1,0 +1,60 @@
+﻿@model SmartHR_Payroll.Models.Position
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 w-50 mx-auto">
+        <div class="card-header bg-primary text-white"><h5 class="mb-0">Thêm mới Vị trí</h5></div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-info-circle"></i> Mã vị trí (Code) sẽ được tự động sinh dựa trên Tên (VD: Lập trình viên -> POS-LTV68).
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tên vị trí (Chức vụ)</label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Trưởng phòng, Kế toán viên..." required />
+                    <div class="invalid-feedback">
+                        Vui lòng nhập tên vị trí (chức vụ).
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Thuộc Phòng ban</label>
+                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments" required>
+                        <option value="">-- Chọn phòng ban quản lý --</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Vui lòng chọn phòng ban cho vị trí này.
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Lưu dữ liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict'
+            // Lấy tất cả các form có class needs-validation
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Lặp qua form và chặn submit nếu có lỗi
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

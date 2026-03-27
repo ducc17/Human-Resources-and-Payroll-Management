@@ -1,0 +1,206 @@
+@model SmartHR_Payroll.ViewModels.Contract.CreateContractViewModel
+@using SmartHR_Payroll.Models
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Tạo hợp đồng";
+    var successMessage = TempData["SuccessMessage"]?.ToString();
+    var modelErrors = ViewData.ModelState.Values
+        .SelectMany(v => v.Errors)
+        .Select(e => e.ErrorMessage)
+        .Where(e => !string.IsNullOrWhiteSpace(e))
+        .Distinct()
+        .ToList();
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-file-signature text-primary me-2"></i>Tạo hợp đồng mới</h4>
+        <p class="text-muted mb-3">Nhập thông tin hợp đồng để gán cho nhân viên.</p>
+    </div>
+
+    <div class="card-body pt-2">
+        <form asp-action="Create" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 d-none"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="EmployeeId" class="form-label">Nhân viên</label>
+                    <input id="employeeLookup" type="text" class="form-control" placeholder="Nhập mã nhân viên..." autocomplete="off" />
+                    <select asp-for="EmployeeId" class="form-select d-none" asp-items="ViewBag.Employees" tabindex="-1" aria-hidden="true">
+                        <option value="0">-- Chọn nhân viên --</option>
+                    </select>
+                    <span asp-validation-for="EmployeeId" class="text-danger d-none"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ContractNumber" class="form-label">Mã hợp đồng</label>
+                    <input asp-for="ContractNumber" class="form-control" placeholder="VD: HD-2026-001" />
+                    <span asp-validation-for="ContractNumber" class="text-danger d-none"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Type" class="form-label">Loại hợp đồng</label>
+                    <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Status.ContractType>()"></select>
+                    <span asp-validation-for="Type" class="text-danger d-none"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="StartDate" class="form-label">Ngày bắt đầu</label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                    <span asp-validation-for="StartDate" class="text-danger d-none"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="EndDate" class="form-label">Ngày kết thúc</label>
+                    <input asp-for="EndDate" type="date" class="form-control" />
+                    <span asp-validation-for="EndDate" class="text-danger d-none"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="BaseSalary" class="form-label">Lương cơ bản</label>
+                    <input asp-for="BaseSalary" type="number" step="1" min="1" class="form-control" placeholder="VD: 12000000" />
+                    <span asp-validation-for="BaseSalary" class="text-danger d-none"></span>
+                </div>
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu hợp đồng
+                </button>
+                <a asp-controller="Home" asp-action="Dashboard" class="btn btn-outline-secondary">Quay lại dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="contractNotifyModal" tabindex="-1" aria-labelledby="contractNotifyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contractNotifyModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="contractNotifyModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function showNotifyModal(title, messages) {
+            const titleEl = document.getElementById("contractNotifyModalLabel");
+            const bodyEl = document.getElementById("contractNotifyModalBody");
+            const modalEl = document.getElementById("contractNotifyModal");
+
+            if (!titleEl || !bodyEl || !modalEl) {
+                return;
+            }
+
+            titleEl.textContent = title;
+
+            if (Array.isArray(messages)) {
+                bodyEl.innerHTML = messages.map(m => `<div>${m}</div>`).join("");
+            } else {
+                bodyEl.textContent = messages || "";
+            }
+
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = new window.bootstrap.Modal(modalEl);
+                modal.show();
+            } else {
+                const fallbackText = Array.isArray(messages) ? messages.join("\n") : (messages || "");
+                alert(fallbackText);
+            }
+        }
+
+        (function () {
+            const employeeInput = document.getElementById("employeeLookup");
+            const employeeSelect = document.getElementById("EmployeeId");
+
+            if (!employeeInput || !employeeSelect) {
+                return;
+            }
+
+            function normalizeKeyword(value) {
+                return (value || "")
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .trim();
+            }
+
+            function getEmployeeOptions() {
+                return Array.from(employeeSelect.options).filter(o => o.value && o.value !== "0");
+            }
+
+            function syncInputFromSelected() {
+                const selected = employeeSelect.options[employeeSelect.selectedIndex];
+                employeeInput.value = selected && selected.value && selected.value !== "0" ? selected.text : "";
+            }
+
+            function syncSelectedFromInput() {
+                const keyword = normalizeKeyword(employeeInput.value);
+
+                if (!keyword) {
+                    employeeSelect.value = "0";
+                    return;
+                }
+
+                const match = getEmployeeOptions().find(option => normalizeKeyword(option.text) === keyword);
+                employeeSelect.value = match ? match.value : "0";
+            }
+
+            syncInputFromSelected();
+
+            employeeInput.addEventListener("input", syncSelectedFromInput);
+            employeeInput.addEventListener("change", syncSelectedFromInput);
+
+            const form = employeeInput.closest("form");
+            if (form) {
+                form.addEventListener("submit", function (event) {
+                    syncSelectedFromInput();
+
+                    const jqueryForm = window.jQuery ? window.jQuery(form) : null;
+                    const isValid = jqueryForm && typeof jqueryForm.valid === "function" ? jqueryForm.valid() : true;
+
+                    if (!isValid) {
+                        event.preventDefault();
+
+                        const validator = jqueryForm.data("validator");
+                        const clientErrors = validator && Array.isArray(validator.errorList)
+                            ? validator.errorList.map(e => e.message).filter(Boolean)
+                            : ["Dữ liệu không hợp lệ. Vui lòng kiểm tra lại."];
+
+                        const uniqueErrors = [...new Set(clientErrors)];
+                        showNotifyModal("Thông báo lỗi", uniqueErrors);
+                    }
+                });
+            }
+        })();
+
+        (function () {
+            const successMessage = @Html.Raw(JsonSerializer.Serialize(successMessage));
+            const errorMessages = @Html.Raw(JsonSerializer.Serialize(modelErrors));
+
+            const hasErrors = Array.isArray(errorMessages) && errorMessages.length > 0;
+            const hasSuccess = typeof successMessage === "string" && successMessage.length > 0;
+
+            if (!hasErrors && !hasSuccess) {
+                return;
+            }
+
+            if (hasErrors) {
+                showNotifyModal("Thông báo lỗi", errorMessages);
+            } else {
+                showNotifyModal("Thông báo", successMessage);
+            }
+        })();
+    </script>
+}

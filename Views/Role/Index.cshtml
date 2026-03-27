@@ -1,0 +1,103 @@
+﻿@model List<SmartHR_Payroll.ViewModels.Role.RoleListViewModel>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-shield-lock"></i> Danh sách Vai trò (Quyền)</h4>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Thêm mới</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card shadow-sm border-0 mb-3 bg-light">
+        <div class="card-body py-2">
+            <form method="get" asp-action="Index">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold mb-1">Sắp xếp theo nhân sự</label>
+                        <select name="sortBy" class="form-select form-select-sm">
+                            <option value="">-- Mặc định --</option>
+                            <option value="emp_desc" selected="@(ViewBag.CurrentSort == "emp_desc")">Nhiều người dùng nhất</option>
+                            <option value="emp_asc" selected="@(ViewBag.CurrentSort == "emp_asc")">Ít người dùng nhất</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex gap-2 mt-auto pb-1">
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-sort-down"></i> Sắp xếp</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> Tải lại</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <table class="table table-hover align-middle mb-0 text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th class="text-start ps-3">Tên Vai trò</th>
+                    <th class="text-start">Mô tả</th>
+                    <th>Số NV</th>
+                    <th>Người tạo</th>
+                    <th>Ngày tạo</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end pe-3">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="@(item.IsDeleted ? "table-secondary" : "")">
+                        <td class="text-start ps-3 fw-bold text-primary">@item.Name</td>
+                        <td class="text-start">@item.Description</td>
+                        <td><span class="badge bg-info text-dark">@item.EmployeeCount</span></td>
+                        <td class="text-muted small">@item.CreatedBy</td>
+                        <td class="text-muted small">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (!item.IsDeleted)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-secondary">Đã khóa</span>
+                            }
+                        </td>
+                        <td class="text-end pe-3">
+                            <a asp-action="Edit" asp-route-id="@item.RoleId" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Sửa</a>
+                            @if (!item.IsDeleted)
+                            {
+                                <form asp-action="Deactivate" asp-route-id="@item.RoleId" method="post" class="d-inline form-delete">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete"><i class="bi bi-lock-fill"></i></button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function () {
+                var form = this.closest('form');
+                Swal.fire({
+                    title: 'Xác nhận khóa?',
+                    text: "Những nhân viên thuộc vai trò này có thể bị mất quyền truy cập!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => { if (result.isConfirmed) form.submit(); })
+            });
+        });
+    </script>
+}

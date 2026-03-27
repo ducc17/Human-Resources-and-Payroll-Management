@@ -1,0 +1,124 @@
+﻿@model List<SmartHR_Payroll.Models.Attendance>
+
+@{
+    ViewData["Title"] = "Lịch sử chấm công";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 mb-4">
+
+            <div class="card shadow-sm text-center p-4 mb-3 border-0">
+                <img src="https://ui-avatars.com/api/?name=@ViewBag.FullName&background=random&size=128"
+                     class="rounded-circle mx-auto mb-3" alt="Avatar" width="120">
+                <h5 class="mb-1 fw-bold">@ViewBag.FullName</h5>
+                <p class="text-muted mb-2 small">@ViewBag.PositionName</p>
+                <span class="badge bg-primary">@ViewBag.DepartmentName</span>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold text-uppercase small text-muted py-3">
+                    <i class="bi bi-grid-fill me-1"></i> Tùy chọn
+                </div>
+                <div class="list-group list-group-flush">
+                    <a asp-controller="Profile" asp-action="Index" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-person-lines-fill text-secondary me-2"></i> Hồ sơ cá nhân
+                    </a>
+
+                    <a asp-controller="Attendance" asp-action="MyHistory" class="list-group-item list-group-item-action py-3 active fw-bold">
+                        <i class="bi bi-clock-history text-white me-2"></i> Lịch sử chấm công
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+                    <div><i class="bi bi-calendar-check text-primary"></i> Nhật ký chấm công của tôi</div>
+                </div>
+
+                <div class="card-body bg-light border-bottom py-2">
+                    <form method="get" asp-action="MyHistory">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-bold mb-1">Từ ngày</label>
+                                <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-bold mb-1">Đến ngày</label>
+                                <input type="date" name="toDate" class="form-control form-control-sm" value="@ViewBag.ToDate">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-bold mb-1">Trạng thái</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="ontime" selected="@(ViewBag.Status == "ontime")">Đúng giờ</option>
+                                    <option value="late" selected="@(ViewBag.Status == "late")">Đi trễ</option>
+                                    <option value="absent" selected="@(ViewBag.Status == "absent")">Vắng mặt</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex gap-1 mt-auto pb-1">
+                                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
+                                <a asp-action="MyHistory" class="btn btn-outline-secondary btn-sm" title="Tải lại"><i class="bi bi-arrow-clockwise"></i>xóa</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4 text-start">Ngày làm việc</th>
+                                    <th>Giờ vào</th>
+                                    <th>Giờ ra</th>
+                                    <th>Tổng giờ</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-start">@item.Date.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-success fw-bold">@(item.CheckInTime?.ToString(@"hh\:mm") ?? "--:--")</td>
+                                            <td class="text-danger fw-bold">@(item.CheckOutTime?.ToString(@"hh\:mm") ?? "--:--")</td>
+                                            <td><span class="badge bg-info text-dark">@item.TotalHours h</span></td>
+                                            <td>
+                                                @if (item.IsLate)
+                                                {
+                                                    <span class="badge bg-warning text-dark">Đi trễ</span>
+                                                }
+                                                else if (item.CheckInTime.HasValue)
+                                                {
+                                                    <span class="badge bg-success">Đúng giờ</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Vắng</span>
+                                                }
+                                            </td>
+                                            <td class="small text-muted fst-italic">@item.Note</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            Bạn chưa có dữ liệu chấm công nào.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
