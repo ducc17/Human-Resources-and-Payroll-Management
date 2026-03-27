@@ -6,7 +6,7 @@
             <h4 class="mb-1 text-primary"><i class="bi bi-diagram-3-fill me-2"></i>@Model.Name</h4>
             <span class="text-muted small">
                 <i class="bi bi-upc-scan"></i> Mã phòng: <strong>@Model.Code</strong> &nbsp;|&nbsp;
-                <i class="bi bi-person-badge"></i> Quản lý: <strong>@Model.ManagerName</strong>
+                <i class="bi bi-person-badge"></i> Quản lý: <strong class="text-success">@(string.IsNullOrEmpty(Model.ManagerName) ? "Chưa có" : Model.ManagerName)</strong>
             </span>
         </div>
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm shadow-sm">
@@ -29,6 +29,7 @@
                             <th class="text-start">Vị trí (Chức vụ)</th>
                             <th>Email</th>
                             <th>Số điện thoại</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -36,19 +37,37 @@
                         {
                             foreach (var emp in Model.Employees)
                             {
-                                <tr>
+                                // Xác định xem nhân viên này có phải là quản lý hiện tại không
+                                bool isCurrentManager = (Model.ManagerName == emp.FullName);
+
+                                // Nếu là quản lý thì tô nhẹ nền vàng cho nổi bật
+                                <tr class="@(isCurrentManager ? "table-warning bg-opacity-10" : "")">
                                     <td class="text-start ps-4 fw-bold text-secondary">@emp.EmployeeCode</td>
-                                    <td class="text-start fw-bold">@emp.FullName</td>
+                                    <td class="text-start fw-bold">
+                                        @emp.FullName
+                                        @if (isCurrentManager)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2"><i class="bi bi-star-fill text-danger"></i> Trưởng phòng</span>
+                                        }
+                                    </td>
                                     <td class="text-start"><span class="badge bg-light text-dark border">@emp.PositionName</span></td>
                                     <td>@emp.Email</td>
                                     <td>@emp.PhoneNumber</td>
+                                    <td>
+                                        @if (!isCurrentManager)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="promoteToManager(@emp.EmployeeId, @Model.DepartmentId, '@emp.FullName')">
+                                                <i class="bi bi-person-up"></i> Bổ nhiệm
+                                            </button>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="6" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-2 text-light"></i>
                                     Chưa có nhân viên nào trực thuộc phòng ban này.
                                 </td>
@@ -60,3 +79,62 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function promoteToManager(employeeId, departmentId, employeeName) {
+            Swal.fire({
+                title: 'Xác nhận Bổ nhiệm',
+                html: `Bạn có chắc chắn muốn bổ nhiệm nhân viên <strong>${employeeName}</strong> làm Trưởng phòng?<br/><small class='text-danger'>(Thao tác này sẽ thay thế trưởng phòng hiện tại nếu có)</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-check-lg"></i> Đồng ý, Bổ nhiệm',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    // Hiển thị trạng thái đang xử lý
+                    Swal.fire({
+                        title: 'Đang xử lý...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    // Gọi API Backend
+                    fetch('/Department/AssignManager', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ employeeId: employeeId, departmentId: departmentId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: 'Đã cập nhật Quản lý mới cho phòng ban.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                // Tải lại trang để cập nhật huy hiệu Trưởng phòng
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Thất bại!', data.message || 'Có lỗi xảy ra khi bổ nhiệm.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Lỗi hệ thống!', 'Không thể kết nối đến máy chủ.', 'error');
+                    });
+                }
+            });
+        }
+    </script>
+}

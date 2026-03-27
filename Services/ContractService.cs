@@ -31,16 +31,13 @@ namespace SmartHR_Payroll.Services
                 return (false, "Nhân viên không tồn tại.");
             }
 
-            if (string.IsNullOrWhiteSpace(model.ContractNumber))
+            // Check if employee already has an active contract
+            if (await _contractRepository.HasActiveContractAsync(model.EmployeeId))
             {
-                return (false, "Mã hợp đồng không được để trống.");
+                return (false, "Hợp đồng với nhân viên này vẫn còn hạn. Vui lòng hủy hợp đồng hiện tại trước khi tạo hợp đồng mới.");
             }
 
-            var contractNumber = model.ContractNumber.Trim();
-            if (await _contractRepository.ContractNumberExistsAsync(contractNumber))
-            {
-                return (false, "Mã hợp đồng đã tồn tại.");
-            }
+            var contractNumber = await GenerateContractNumberAsync();
 
             if (model.EndDate.HasValue && model.EndDate.Value < model.StartDate)
             {
@@ -60,7 +57,7 @@ namespace SmartHR_Payroll.Services
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
                 BaseSalary = model.BaseSalary,
-                IsActive = model.IsActive,
+                IsActive = false,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = actor,
                 UpdatedAt = null,
@@ -76,6 +73,88 @@ namespace SmartHR_Payroll.Services
             catch (Exception)
             {
                 return (false, "Có lỗi xảy ra khi lưu hợp đồng. Vui lòng thử lại.");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> CancelContractAsync(int contractId, string actor)
+        {
+            var contract = await _contractRepository.GetContractByIdAsync(contractId);
+            if (contract == null)
+            {
+                return (false, "Không tìm thấy hợp đồng.");
+            }
+
+            if (!contract.IsActive)
+            {
+                return (false, "Hợp đồng này đã được hủy trước đó.");
+            }
+
+            contract.IsActive = false;
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (!contract.EndDate.HasValue || contract.EndDate.Value > today)
+            {
+                contract.IsDeleted = true;
+            }
+
+            contract.UpdatedAt = DateTime.UtcNow;
+            contract.UpdatedBy = actor;
+
+            try
+            {
+                await _contractRepository.UpdateContractAsync(contract);
+                return (true, "Hủy hợp đồng thành công.");
+            }
+            catch
+            {
+                return (false, "Không thể hủy hợp đồng. Vui lòng thử lại.");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ConfirmContractByEmployeeAsync(int contractId, int employeeId, string actor)
+        {
+            var contract = await _contractRepository.GetContractByIdAsync(contractId);
+            if (contract == null)
+            {
+                return (false, "Không tìm thấy hợp đồng.");
+            }
+
+            if (contract.EmployeeId != employeeId)
+            {
+                return (false, "Bạn không có quyền xác nhận hợp đồng này.");
+            }
+
+            if (contract.IsActive)
+            {
+                return (false, "Hợp đồng này đã được xác nhận trước đó.");
+            }
+
+            contract.IsActive = true;
+            contract.IsDeleted = false;
+            contract.UpdatedAt = DateTime.UtcNow;
+            contract.UpdatedBy = actor;
+
+            try
+            {
+                await _contractRepository.UpdateContractAsync(contract);
+                return (true, "Xác nhận hợp đồng thành công.");
+            }
+            catch
+            {
+                return (false, "Không thể xác nhận hợp đồng. Vui lòng thử lại.");
+            }
+        }
+
+        private async Task<string> GenerateContractNumberAsync()
+        {
+            while (true)
+            {
+                var candidate = $"HD-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+                if (!await _contractRepository.ContractNumberExistsAsync(candidate))
+                {
+                    return candidate;
+                }
+
+                await Task.Delay(1);
             }
         }
     }

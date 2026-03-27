@@ -12,10 +12,12 @@ namespace SmartHR_Payroll.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IContractRepository _contractRepository;
 
-        public EmployeeService(IEmployeeRepository employeeRepository)
+        public EmployeeService(IEmployeeRepository employeeRepository, IContractRepository contractRepository)
         {
             _employeeRepository = employeeRepository;
+            _contractRepository = contractRepository;
         }
 
         public async Task<ProfileViewModel?> GetProfileAsync(int employeeId)
@@ -42,6 +44,12 @@ namespace SmartHR_Payroll.Services
             };
         }
 
+        public async Task<List<Bank>> GetAllBanksAsync()
+        {
+            // Lấy danh sách ngân hàng chưa bị xóa, sắp xếp theo tên viết tắt (VCB, BIDV...)
+            return await _employeeRepository.GetAllBanksAsync();
+        }
+
         public async Task<EditProfileViewModel?> GetEditProfileAsync(int employeeId)
         {
             var emp = await _employeeRepository.GetEmployeeProfileAsync(employeeId);
@@ -52,7 +60,7 @@ namespace SmartHR_Payroll.Services
                 EmployeeId = emp.EmployeeId,
                 PhoneNumber = emp.PhoneNumber,
                 Address = emp.Address,
-                BankName = emp.Bank?.BankName ?? string.Empty,
+                BankId = emp.BankId,
                 BankAccountNumber = emp.BankAccountNumber
             };
         }
@@ -67,21 +75,10 @@ namespace SmartHR_Payroll.Services
             emp.Address = model.Address;
             emp.BankAccountNumber = model.BankAccountNumber;
 
-            if (!string.IsNullOrWhiteSpace(model.BankName))
-            {
-                var banks = await _employeeRepository.GetBanksAsync();
-                var selectedBank = banks.FirstOrDefault(b =>
-                    string.Equals(b.BankName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(b.ShortName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(b.BankCode, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase));
-
-                if (selectedBank == null)
-                {
-                    return (false, "Ngân hàng không hợp lệ.");
-                }
-
-                emp.BankId = selectedBank.BankId;
-            }
+            // ĐÃ FIX: Gán thẳng BankId từ Form (Dropdown) gửi lên. 
+            // Nếu người dùng chọn "-- Chọn ngân hàng --" thì model.BankId sẽ là null, 
+            // hệ thống cũng tự hiểu và lưu null xuống DB.
+            emp.BankId = model.BankId;
 
             await _employeeRepository.UpdateEmployeeAsync(emp);
             return (true, "Cập nhật hồ sơ thành công!");
@@ -91,7 +88,9 @@ namespace SmartHR_Payroll.Services
         {
             var jobs = await _employeeRepository.GetJobsAsync();
             var banks = await _employeeRepository.GetBanksAsync();
-            var roles = await _employeeRepository.GetRolesAsync();
+            var roles = (await _employeeRepository.GetRolesAsync())
+                .Where(r => !string.Equals(r.Name, "Admin", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             return (jobs, banks, roles);
         }
@@ -178,6 +177,12 @@ namespace SmartHR_Payroll.Services
                 return (false, "Vai trò không hợp lệ.");
             }
 
+            if (roles.Any(r => r.RoleId == employee.RoleId
+                && string.Equals(r.Name, "Admin", StringComparison.OrdinalIgnoreCase)))
+            {
+                return (false, "Không thể tạo nhân viên với vai trò Admin.");
+            }
+
             employee.Gender = employee.Gender;
             employee.Status = Status.EmployeeStatus.Active;
             employee.RoleId = employee.RoleId;
@@ -207,12 +212,19 @@ namespace SmartHR_Payroll.Services
 
         }
 
-        public async Task<EmployeeListViewModel> GetEmployeesPagedAsync(int page, int pageSize)
+        public async Task<EmployeeListViewModel> GetEmployeesPagedAsync(
+            int page,
+            int pageSize,
+            int? departmentId,
+            string keyword,
+            string status)
         {
             if (page < 1) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var (employees, totalCount) = await _employeeRepository.GetEmployeesPagedAsync(page, pageSize);
+            var (employees, totalCount) = await _employeeRepository
+                .GetEmployeesPagedAsync(page, pageSize, departmentId, keyword, status);
+
             var totalPages = totalCount == 0 ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
             return new EmployeeListViewModel
@@ -236,6 +248,7 @@ namespace SmartHR_Payroll.Services
                     UpdatedBy = e.UpdatedBy ?? string.Empty,
                     DepartmentName = e.Job?.Department?.Name ?? string.Empty,
                     PositionName = e.Job?.Position?.Name ?? string.Empty,
+                    RoleName = e.Role?.Name ?? string.Empty,
                     Email = e.Email,
                     PhoneNumber = e.PhoneNumber,
                     Status = e.Status
@@ -253,7 +266,13 @@ namespace SmartHR_Payroll.Services
 
             if (employee.Status == Status.EmployeeStatus.Terminated)
             {
-                return (false, "Nhân viên này đã bị ban trước đó.");
+                return (false, "Nhân viên này đã bị khóa trước đó.");
+            }
+
+            // Check if employee has an active contract
+            if (await _contractRepository.HasActiveContractAsync(employeeId))
+            {
+                return (false, "Không thể khóa tài khoản nhân viên này vì họ có hợp đồng còn hạn. Vui lòng hủy hợp đồng trước.");
             }
 
             employee.Status = Status.EmployeeStatus.Terminated;
@@ -264,11 +283,11 @@ namespace SmartHR_Payroll.Services
             try
             {
                 await _employeeRepository.UpdateEmployeeAsync(employee);
-                return (true, "Ban account nhân viên thành công.");
+                return (true, "Khóa tài khoản nhân viên thành công.");
             }
             catch
             {
-                return (false, "Không thể ban account. Vui lòng thử lại.");
+                return (false, "Không thể khóa tài khoản nhân viên. Vui lòng thử lại.");
             }
         }
 
@@ -282,7 +301,7 @@ namespace SmartHR_Payroll.Services
 
             if (employee.Status != Status.EmployeeStatus.Terminated)
             {
-                return (false, "Nhân viên này chưa bị ban.");
+                return (false, "Nhân viên này chưa bị khóa.");
             }
 
             employee.Status = Status.EmployeeStatus.Active;
@@ -293,11 +312,11 @@ namespace SmartHR_Payroll.Services
             try
             {
                 await _employeeRepository.UpdateEmployeeAsync(employee);
-                return (true, "Unban account nhân viên thành công.");
+                return (true, "Mở khóa tài khoản nhân viên thành công.");
             }
             catch
             {
-                return (false, "Không thể unban account. Vui lòng thử lại.");
+                return (false, "Không thể mở khóa tài khoản nhân viên. Vui lòng thử lại.");
             }
         }
 
@@ -323,7 +342,8 @@ namespace SmartHR_Payroll.Services
                     StartDate = c.StartDate,
                     EndDate = c.EndDate,
                     BaseSalary = c.BaseSalary,
-                    IsActive = c.IsActive
+                    IsActive = c.IsActive,
+                    IsDeleted = c.IsDeleted
                 }).ToList()
             };
         }
@@ -368,6 +388,164 @@ namespace SmartHR_Payroll.Services
         {
             // Giả định trong EmployeeRepository của bạn có hàm GetByIdAsync
             return await _employeeRepository.GetByIdAsync(id);
+        }
+
+        public async Task<EmployeeAllowanceListViewModel?> GetEmployeeAllowancesAsync(int employeeId)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+            {
+                return null;
+            }
+
+            var items = await _employeeRepository.GetEmployeeAllowancesAsync(employeeId);
+
+            return new EmployeeAllowanceListViewModel
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeCode = employee.EmployeeCode,
+                FullName = employee.FullName,
+                Items = items.Select(ea => new EmployeeAllowanceItemViewModel
+                {
+                    AllowanceName = ea.Allowance?.Name ?? string.Empty,
+                    Amount = ea.Amount,
+                    EffectiveDate = ea.EffectiveDate
+                }).ToList()
+            };
+        }
+
+        public async Task<List<Allowance>> GetActiveAllowancesAsync()
+        {
+            return await _employeeRepository.GetActiveAllowancesAsync();
+        }
+
+        public async Task<(bool Success, string Message)> AddEmployeeAllowanceAsync(int employeeId, int allowanceId, decimal amount, DateOnly effectiveDate, string actor)
+        {
+            System.Diagnostics.Debug.WriteLine($"AddEmployeeAllowanceAsync called: EmployeeId={employeeId}, AllowanceId={allowanceId}, Amount={amount}, EffectiveDate={effectiveDate}");
+
+            if (amount <= 0)
+            {
+                return (false, "Số tiền phụ cấp phải lớn hơn 0.");
+            }
+
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+            {
+                return (false, "Không tìm thấy nhân viên.");
+            }
+
+            var allowances = await _employeeRepository.GetActiveAllowancesAsync();
+            var allowance = allowances.FirstOrDefault(a => a.AllowanceId == allowanceId);
+            if (allowance == null)
+            {
+                return (false, "Khoản phụ cấp không hợp lệ.");
+            }
+
+            var existing = await _employeeRepository.GetEmployeeAllowanceAsync(employeeId, allowanceId, effectiveDate);
+            if (existing == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Creating new EmployeeAllowance...");
+                existing = new EmployeeAllowance
+                {
+                    EmployeeId = employeeId,
+                    AllowanceId = allowanceId,
+                    EffectiveDate = effectiveDate,
+                    Amount = amount
+                };
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Updating existing EmployeeAllowance (Id={existing.Id})...");
+                existing.Amount = amount;
+            }
+
+            try
+            {
+                await _employeeRepository.SaveEmployeeAllowanceAsync(existing);
+                System.Diagnostics.Debug.WriteLine("Successfully saved EmployeeAllowance");
+                return (true, $"Đã lưu phụ cấp {allowance.Name} cho {employee.FullName} ({amount:N0}).");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in SaveEmployeeAllowanceAsync: {ex.Message}");
+                return (false, $"Lỗi lưu dữ liệu: {ex.Message}");
+            }
+        }
+
+        public async Task<EmployeeDeductionListViewModel?> GetEmployeeDeductionsAsync(int employeeId)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+            {
+                return null;
+            }
+
+            var items = await _employeeRepository.GetEmployeeDeductionsAsync(employeeId);
+
+            return new EmployeeDeductionListViewModel
+            {
+                EmployeeId = employee.EmployeeId,
+                EmployeeCode = employee.EmployeeCode,
+                FullName = employee.FullName,
+                Items = items.Select(ed => new EmployeeDeductionItemViewModel
+                {
+                    DeductionName = ed.Deduction?.Name ?? string.Empty,
+                    Amount = ed.Amount,
+                    EffectiveDate = ed.EffectiveDate
+                }).ToList()
+            };
+        }
+
+        public async Task<List<Deduction>> GetActiveDeductionsAsync()
+        {
+            return await _employeeRepository.GetActiveDeductionsAsync();
+        }
+
+        public async Task<(bool Success, string Message)> AddEmployeeDeductionAsync(int employeeId, int deductionId, decimal amount, DateOnly effectiveDate, string actor)
+        {
+            if (amount <= 0)
+            {
+                return (false, "Số tiền khoản trừ phải lớn hơn 0.");
+            }
+
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+            {
+                return (false, "Không tìm thấy nhân viên.");
+            }
+
+            var deductions = await _employeeRepository.GetActiveDeductionsAsync();
+            var deduction = deductions.FirstOrDefault(d => d.DeductionId == deductionId);
+            if (deduction == null)
+            {
+                return (false, "Khoản trừ không hợp lệ.");
+            }
+
+            var existing = await _employeeRepository.GetEmployeeDeductionAsync(employeeId, deductionId, effectiveDate);
+            if (existing == null)
+            {
+                existing = new EmployeeDeduction
+                {
+                    EmployeeId = employeeId,
+                    DeductionId = deductionId,
+                    EffectiveDate = effectiveDate,
+                    Amount = amount
+                };
+            }
+            else
+            {
+                existing.Amount = amount;
+            }
+
+            try
+            {
+                await _employeeRepository.SaveEmployeeDeductionAsync(existing);
+                return (true, $"Đã lưu khoản trừ {deduction.Name} cho {employee.FullName} ({amount:N0}).");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi lưu dữ liệu: {ex.Message}");
+            }
         }
     }
 }

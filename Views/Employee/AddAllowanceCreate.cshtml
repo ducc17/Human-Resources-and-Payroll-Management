@@ -1,0 +1,59 @@
+@model SmartHR_Payroll.ViewModels.Employee.AddEmployeeAllowanceViewModel
+
+@{
+    ViewData["Title"] = "Thêm phụ cấp cho nhân viên";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-circle-plus text-primary me-2"></i>Thêm khoản phụ cấp</h4>
+        <p class="text-muted mb-3">Chọn khoản phụ cấp và nhập số tiền áp dụng cho nhân viên.</p>
+    </div>
+
+    <div class="card-body pt-2">
+        <div class="alert alert-light border d-flex gap-4 flex-wrap">
+            <div><strong>Mã NV:</strong> @Model.EmployeeCode</div>
+            <div><strong>Họ tên:</strong> @Model.FullName</div>
+        </div>
+
+        <form asp-action="AddAllowance" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="alert alert-danger mb-3" role="alert"></div>
+
+            <input asp-for="EmployeeId" type="hidden" />
+            <input asp-for="EmployeeCode" type="hidden" />
+            <input asp-for="FullName" type="hidden" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="AllowanceId" class="form-label">Khoản phụ cấp</label>
+                    <select asp-for="AllowanceId" class="form-select" asp-items="ViewBag.Allowances">
+                        <option value="">-- Chọn khoản phụ cấp --</option>
+                    </select>
+                    <span asp-validation-for="AllowanceId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Amount" class="form-label">Số tiền</label>
+                    <input asp-for="Amount" type="text" inputmode="decimal" class="form-control" placeholder="VD: 500000" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="EffectiveDate" class="form-label">Ngày áp dụng</label>
+                    <input asp-for="EffectiveDate" type="date" class="form-control" />
+                    <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu phụ cấp
+                </button>
+                <a asp-action="AddAllowance"
+                   asp-route-employeeId="@Model.EmployeeId"
+                   class="btn btn-outline-secondary">Quay lại khoản phụ cấp</a>
+            </div>
+        </form>
+    </div>
+</div>

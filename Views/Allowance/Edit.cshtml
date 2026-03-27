@@ -1,0 +1,63 @@
+@model SmartHR_Payroll.Models.Allowance
+
+@{
+    ViewData["Title"] = "Cập nhật phụ cấp";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>Cập nhật phụ cấp</h4>
+        <p class="text-muted mb-3">Chỉnh sửa thông tin phụ cấp và trạng thái hoạt động.</p>
+    </div>
+    <div class="card-body pt-2">
+        <form asp-action="Edit" asp-route-id="@Model.AllowanceId" method="post" class="needs-validation" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <input asp-for="AllowanceId" type="hidden" />
+            <input asp-for="CreatedAt" type="hidden" />
+            <input asp-for="CreatedBy" type="hidden" />
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Tên phụ cấp</label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Phụ cấp ăn trưa, Phụ cấp xăng xe..." required />
+                    <div class="invalid-feedback">Vui lòng nhập tên phụ cấp.</div>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check form-switch mb-2">
+                        <input asp-for="IsTaxable" class="form-check-input" />
+                        <label asp-for="IsTaxable" class="form-check-label">Phụ cấp chịu thuế</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu thay đổi
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

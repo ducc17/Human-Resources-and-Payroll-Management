@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartHR_Payroll.Services;
 using SmartHR_Payroll.Services.IServices;
 using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
+    
     public class AttendanceController : Controller
     {
         private readonly IAttendanceService _attendanceService;
@@ -15,36 +17,35 @@ namespace SmartHR_Payroll.Controllers
             _employeeService = employeeService;
         }
 
-        // Trang chủ của Attendance (Khắc phục lỗi 404 khi vào /Attendance)
+
         [HttpGet]
-        // Thêm tham số int? departmentId vào Action
-        public async Task<IActionResult> Index(string? search, string? fromDate, string? toDate, string? status, int? departmentId)
+        [Authorize(Roles = "Manager, HR")]
+        public async Task<IActionResult> Index(string? search, int? departmentId, DateOnly? fromDate, DateOnly? toDate, string? status, int page = 1)
         {
-            DateOnly? from = null;
-            DateOnly? to = null;
+            int pageSize = 10;
 
-            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
-            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+            // 1. Gọi Service (Giao phó toàn bộ việc lọc, gom nhóm và phân trang cho Service)
+            var result = await _attendanceService.GetAllAttendancesAsync(search, fromDate, toDate, status, departmentId, page, pageSize);
 
-            // Truyền tham số departmentId xuống Service
-            var allAttendances = await _attendanceService.GetAllAttendancesAsync(search, from, to, status, departmentId);
+            // 2. Nhận kết quả và đẩy ra ViewBags để View hiển thị thanh phân trang & giữ bộ lọc
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = result.TotalPages; // Lấy TotalPages từ Service tính sẵn
 
-            // Lấy danh sách các phòng ban từ DB
-            var departments = await _attendanceService.GetAllDepartmentsAsync();
-
-            // Lưu lại trạng thái để đẩy lên giao diện
             ViewBag.Search = search;
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
-            ViewBag.Status = status;
             ViewBag.DepartmentId = departmentId;
-            ViewBag.Departments = departments; // Truyền List Phòng ban sang View
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
 
-            return View(allAttendances);
+            ViewBag.Departments = await _attendanceService.GetAllDepartmentsAsync();
+
+            // 3. Điều hướng trả về Data đã được cắt gọn
+            return View(result.Items);
         }
 
         // Trang hiển thị Form Import
         [HttpGet]
+        [Authorize(Roles = "Manager, HR")]
         public IActionResult Import()
         {
             return View();
@@ -74,36 +75,26 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MyHistory(string? fromDate, string? toDate, string? status)
+        [Authorize]
+        public async Task<IActionResult> MyHistory(int? month, int? year)
         {
+            // 1. Lấy ID nhân viên
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Auth");
+            int empId = int.Parse(userIdStr);
 
-            int employeeId = int.Parse(userIdStr);
+            // 2. Xác định tháng/năm (mặc định là hiện tại nếu không chọn)
+            int currentMonth = month ?? DateTime.Now.Month;
+            int currentYear = year ?? DateTime.Now.Year;
 
-            // Xử lý ép kiểu Ngày tháng
-            DateOnly? from = null;
-            DateOnly? to = null;
-            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
-            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+            // 3. ĐẨY HẾT LOGIC CHO SERVICE
+            var dailyData = await _attendanceService.GetMyAttendanceCalendarAsync(empId, currentMonth, currentYear);
 
-            // Truyền tham số xuống Service
-            var history = await _attendanceService.GetMyAttendanceHistoryAsync(employeeId, from, to, status);
+            // 4. Trả View
+            ViewBag.Month = currentMonth;
+            ViewBag.Year = currentYear;
 
-            var emp = await _employeeService.GetByIdAsync(employeeId);
-            if (emp != null)
-            {
-                ViewBag.FullName = emp.FirstName + " " + emp.LastName;
-                ViewBag.PositionName = emp.Job.Position?.Name ?? "Nhân viên";
-                ViewBag.DepartmentName = emp.Job.Department?.Name ?? "Chưa phân phòng";
-            }
-
-            // Lưu lại trạng thái lọc để form không bị mất dữ liệu khi load lại trang
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
-            ViewBag.Status = status;
-
-            return View(history);
+            return View(dailyData);
         }
     }
 }

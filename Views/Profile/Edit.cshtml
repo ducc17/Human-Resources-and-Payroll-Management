@@ -32,8 +32,11 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="BankName" class="form-label fw-bold">Tên Ngân hàng</label>
-                                <input asp-for="BankName" class="form-control" placeholder="VD: Vietcombank, Techcombank..." />
+                                <label asp-for="BankId" class="form-label fw-bold">Tên Ngân hàng</label>
+                                <select asp-for="BankId" class="form-select" asp-items="ViewBag.Banks">
+                                    <option value="">-- Chọn ngân hàng --</option>
+                                </select>
+                                <span asp-validation-for="BankId" class="text-danger small mt-1"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="BankAccountNumber" class="form-label fw-bold">Số tài khoản</label>

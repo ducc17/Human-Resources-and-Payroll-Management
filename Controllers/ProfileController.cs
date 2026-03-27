@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartHR_Payroll.Services.IServices;
 using SmartHR_Payroll.ViewModels.Profile;
 using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly IEmployeeService _employeeService;
@@ -48,6 +51,18 @@ namespace SmartHR_Payroll.Controllers
 
             return View(model);
         }
+        private async Task LoadBankDropdownAsync(int? selectedBankId = null)
+        {
+            var banks = await _employeeService.GetAllBanksAsync();
+
+            var bankList = banks.Select(b => new
+            {
+                b.BankId,
+                DisplayText = $"{b.ShortName} - {b.BankName}" // Ví dụ: "VCB - Ngân hàng Vietcombank"
+            });
+
+            ViewBag.Banks = new SelectList(bankList, "BankId", "DisplayText", selectedBankId);
+        }
 
         // Hiển thị Form chỉnh sửa (GET)
         [HttpGet]
@@ -58,6 +73,9 @@ namespace SmartHR_Payroll.Controllers
 
             var editModel = await _employeeService.GetEditProfileAsync(int.Parse(userId));
             if (editModel == null) return NotFound();
+
+            // ĐÂY LÀ DÒNG QUAN TRỌNG NHẤT ĐỂ HIỆN DANH SÁCH NGÂN HÀNG:
+            await LoadBankDropdownAsync(editModel.BankId);
 
             return View(editModel);
         }

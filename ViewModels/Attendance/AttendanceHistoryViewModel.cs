@@ -8,5 +8,7 @@
         public decimal TotalHours { get; set; }
         public bool IsLate { get; set; }
         public string? Note { get; set; }
+
+        public bool IsPerfect => CheckInTime.HasValue && CheckOutTime.HasValue && !IsLate;
     }
 }

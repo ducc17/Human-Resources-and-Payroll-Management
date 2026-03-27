@@ -85,10 +85,23 @@ builder.Services.AddScoped<IPayrollPeriodService, PayrollPeriodService>();
 // Payslip
 builder.Services.AddScoped<IPayslipRepository, PayslipRepository>();
 builder.Services.AddScoped<IPayslipService, PayslipService>();
+//Allowance
+builder.Services.AddScoped<IAllowanceRepository, AllowanceRepository>();
+builder.Services.AddScoped<IAllowanceService, AllowanceService>();
+
+//Deduction
+builder.Services.AddScoped<IDeductionRepository, DeductionRepository>();
+builder.Services.AddScoped<IDeductionService, DeductionService>();
+
+// Leave Request
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+
+// Report
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

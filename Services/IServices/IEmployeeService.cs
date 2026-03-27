@@ -11,10 +11,23 @@ namespace SmartHR_Payroll.Services.IServices
         Task<(bool Success, string Message)> UpdateProfileAsync(EditProfileViewModel model);
         Task<(List<Job> Jobs, List<Bank> Banks, List<Role> Roles)> GetCreateEmployeeLookupsAsync();
         Task<(bool Success, string Message)> CreateEmployeeAsync(Employee employee, string actor);
-        Task<EmployeeListViewModel> GetEmployeesPagedAsync(int page, int pageSize);
+        Task<EmployeeListViewModel> GetEmployeesPagedAsync(
+             int page,
+             int pageSize,
+             int? departmentId,
+             string keyword,
+             string status
+         );
         Task<(bool Success, string Message)> BanEmployeeAsync(int employeeId, string actor);
         Task<(bool Success, string Message)> UnbanEmployeeAsync(int employeeId, string actor);
         Task<EmployeeContractsViewModel?> GetEmployeeContractsAsync(int employeeId);
         Task<Employee?> GetByIdAsync(int id);
+        Task<EmployeeAllowanceListViewModel?> GetEmployeeAllowancesAsync(int employeeId);
+        Task<List<Allowance>> GetActiveAllowancesAsync();
+        Task<(bool Success, string Message)> AddEmployeeAllowanceAsync(int employeeId, int allowanceId, decimal amount, DateOnly effectiveDate, string actor);
+        Task<EmployeeDeductionListViewModel?> GetEmployeeDeductionsAsync(int employeeId);
+        Task<List<Deduction>> GetActiveDeductionsAsync();
+        Task<(bool Success, string Message)> AddEmployeeDeductionAsync(int employeeId, int deductionId, decimal amount, DateOnly effectiveDate, string actor);
+        Task<List<Bank>> GetAllBanksAsync();
     }
 }

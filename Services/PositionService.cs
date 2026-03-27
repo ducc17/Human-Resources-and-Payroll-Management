@@ -65,6 +65,18 @@ namespace SmartHR_Payroll.Services
             await _positionRepository.UpdateAsync(position);
         }
 
-        public async Task DeactivateAsync(int id) => await _positionRepository.DeactivateAsync(id);
+        public async Task DeactivateAsync(int id)
+        {
+            // Kiểm tra trước khi khóa
+            bool isOccupied = await _positionRepository.HasEmployeesAsync(id);
+            if (isOccupied)
+            {
+                // Quăng lỗi lên cho Controller chụp lại
+                throw new InvalidOperationException("Không thể khóa! Đang có nhân viên đảm nhiệm vị trí này. Vui lòng chuyển công tác nhân viên trước.");
+            }
+
+            // Nếu không có ai thì khóa bình thường
+            await _positionRepository.DeactivateAsync(id);
+        }
     }
 }

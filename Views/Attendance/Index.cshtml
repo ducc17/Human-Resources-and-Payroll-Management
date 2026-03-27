@@ -1,4 +1,4 @@
-﻿@model List<SmartHR_Payroll.Models.Attendance>
+﻿@model IEnumerable<SmartHR_Payroll.ViewModels.Attendance.DailyAttendanceViewModel>
 
 @{
     ViewData["Title"] = "Bảng Chấm Công Tổng Hợp";
@@ -13,7 +13,6 @@
                         <label class="form-label fw-bold text-muted small">Tìm nhân viên</label>
                         <input type="text" name="search" class="form-control form-control-sm" value="@ViewBag.Search" placeholder="Tên / Mã NV...">
                     </div>
-
                     <div class="col-md-2">
                         <label class="form-label fw-bold text-muted small">Phòng ban</label>
                         <select name="departmentId" class="form-select form-select-sm">
@@ -22,7 +21,6 @@
                             {
                                 foreach (var dept in ViewBag.Departments)
                                 {
-                                    // Chú ý: Thay DepartmentId và Name cho khớp với Model Department của bạn
                                     if (ViewBag.DepartmentId != null && ViewBag.DepartmentId == dept.DepartmentId)
                                     {
                                         <option value="@dept.DepartmentId" selected>@dept.Name</option>
@@ -49,9 +47,8 @@
                         <label class="form-label fw-bold text-muted small">Trạng thái</label>
                         <select name="status" class="form-select form-select-sm">
                             <option value="">-- Tất cả --</option>
-                            <option value="ontime" selected="@(ViewBag.Status == "ontime")">Đúng giờ</option>
-                            <option value="late" selected="@(ViewBag.Status == "late")">Đi trễ</option>
-                            <option value="absent" selected="@(ViewBag.Status == "absent")">Vắng</option>
+                            <option value="HopLe" selected="@(ViewBag.Status == "HopLe")">Hợp lệ</option>
+                            <option value="KhongHopLe" selected="@(ViewBag.Status == "KhongHopLe")">Thiếu/Muộn</option>
                         </select>
                     </div>
 
@@ -73,66 +70,161 @@
                 </a>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="table-light sticky-top">
-                        <tr>
-                            <th>Mã NV</th>
-                            <th class="text-start">Họ và tên</th>
-                            <th class="text-start">Phòng ban</th>
-                            <th class="text-start">Vị trí</th>
-                            <th>Ngày làm việc</th>
-                            <th>Giờ vào</th>
-                            <th>Giờ ra</th>
-                            <th>Trạng thái</th>
-                            <th>Note</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td class="fw-bold text-primary">@item.Employee?.EmployeeCode</td>
-                                    <td class="text-start fw-bold">@item.Employee?.FullName</td>
-
-                                    <td class="text-start"><span class="badge bg-secondary">@(item.Employee?.Job.Department?.Name ?? "N/A")</span></td>
-                                    <td class="text-start text-muted small">@(item.Employee?.Job.Position?.Name ?? "N/A")</td>
-
-                                    <td>@item.Date.ToString("dd/MM/yyyy")</td>
-                                    <td class="text-success fw-bold">@(item.CheckInTime?.ToString(@"hh\:mm") ?? "--:--")</td>
-                                    <td class="text-danger fw-bold">@(item.CheckOutTime?.ToString(@"hh\:mm") ?? "--:--")</td>
-                                    <td>
-                                        @if (item.IsLate)
-                                        {
-                                            <span class="badge bg-warning text-dark">Đi trễ</span>
-                                        }
-                                        else if (item.CheckInTime.HasValue)
-                                        {
-                                            <span class="badge bg-success">Đúng giờ</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-light text-dark border">Vắng</span>
-                                        }
-                                    </td>                          
-                                    <td class="small text-muted fst-italic">@item.Note</td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <td colspan="8" class="text-center py-5 text-muted">
-                                    <i class="bi bi-search fs-1 d-block mb-2"></i>
-                                    Không tìm thấy dữ liệu nào phù hợp với bộ lọc.
-                                </td>
+                                <th>Mã NV</th>
+                                <th>Họ Tên</th>
+                                <th>Phòng Ban</th>
+                                <th>Ngày</th>
+                                <th>Check-in (Sớm nhất)</th>
+                                <th>Check-out (Muộn nhất)</th>
+                                <th>Tổng giờ</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any())
+                            {
+                                <tr><td colspan="9" class="text-center text-muted">Không có dữ liệu.</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var item in Model)
+                                {
+                                    // Tạo 1 ID duy nhất cho tính năng Xổ xuống (Collapse)
+                                    string collapseId = $"collapse_{item.EmployeeId}_{item.Date.ToString("yyyyMMdd")}";
+
+                                    <tr>
+                                        <td class="fw-bold text-primary">@item.EmployeeCode</td>
+                                        <td>@item.FullName</td>
+                                        <td>@item.DepartmentName</td>
+                                        <td>@item.Date.ToString("dd/MM/yyyy")</td>
+
+                                        <td class="text-success fw-bold">
+                                            @(item.FirstCheckIn.HasValue? item.FirstCheckIn.Value.ToString(@"hh\:mm") : "--:--")
+                                        </td>
+                                        <td class="text-danger fw-bold">
+                                            @(item.LastCheckOut.HasValue? item.LastCheckOut.Value.ToString(@"hh\:mm") : "--:--")
+                                        </td>
+
+                                        <td>@item.TotalHours giờ</td>
+                                        <td>
+                                            @if (item.IsPerfect)
+                                            {
+                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Hợp lệ</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Thiếu/Muộn</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                                                Xem chi tiết (@item.Details.Count)
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="collapse bg-light" id="@collapseId">
+                                        <td colspan="9" class="p-3 border-bottom">
+                                            <div class="ps-4 border-start border-info border-3">
+                                                <h6 class="text-muted mb-2"><i class="bi bi-clock-history"></i> Chi tiết các lần quẹt thẻ ngày @item.Date.ToString("dd/MM/yyyy")</h6>
+                                                <table class="table table-sm table-bordered bg-white mb-0 w-50">
+                                                    <thead class="table-secondary">
+                                                        <tr>
+                                                            <th>STT</th>
+                                                            <th>Giờ ghi nhận (In)</th>
+                                                            <th>Giờ ghi nhận (Out)</th>
+                                                            <th>Ghi chú (Note)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @{
+                                                            int stt = 1;
+                                                        }
+                                                        @foreach (var detail in item.Details)
+                                                        {
+                                                            <tr>
+                                                                <td>@stt</td>
+                                                                <td>@(detail.CheckInTime.HasValue? detail.CheckInTime.Value.ToString(@"hh\:mm") : "---")</td>
+                                                                <td>@(detail.CheckOutTime.HasValue? detail.CheckOutTime.Value.ToString(@"hh\:mm") : "---")</td>
+                                                                <td class="text-muted fst-italic">@detail.Note</td>
+                                                            </tr>
+                                                            stt++;
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                          
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @{
+                    int currentPage = ViewBag.CurrentPage ?? 1;
+                    int totalPages = ViewBag.TotalPages ?? 1;
+                }
+
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center mb-0">
+
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-search="@ViewBag.Search"
+                                   asp-route-departmentId="@ViewBag.DepartmentId"
+                                   asp-route-fromDate="@ViewBag.FromDate"
+                                   asp-route-toDate="@ViewBag.ToDate"
+                                   asp-route-status="@ViewBag.Status">
+                                    <i class="bi bi-chevron-left"></i> Trước
+                                </a>
+                            </li>
+
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-search="@ViewBag.Search"
+                                       asp-route-departmentId="@ViewBag.DepartmentId"
+                                       asp-route-fromDate="@ViewBag.FromDate"
+                                       asp-route-toDate="@ViewBag.ToDate"
+                                       asp-route-status="@ViewBag.Status">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-search="@ViewBag.Search"
+                                   asp-route-departmentId="@ViewBag.DepartmentId"
+                                   asp-route-fromDate="@ViewBag.FromDate"
+                                   asp-route-toDate="@ViewBag.ToDate"
+                                   asp-route-status="@ViewBag.Status">
+                                    Sau <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                }
+
             </div>
         </div>
     </div>

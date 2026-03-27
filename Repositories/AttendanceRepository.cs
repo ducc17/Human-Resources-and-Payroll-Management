@@ -2,6 +2,7 @@
 using SmartHR_Payroll.Data;
 using SmartHR_Payroll.Models;
 using SmartHR_Payroll.Repositories.IRepositories;
+using SmartHR_Payroll.ViewModels.Attendance;
 
 namespace SmartHR_Payroll.Repositories
 {
@@ -20,58 +21,85 @@ namespace SmartHR_Payroll.Repositories
                 .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.Date == date);
         }
 
-        public async Task<List<Attendance>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId)
+        // Trong file AttendanceRepository.cs
+        public async Task<List<DailyAttendanceViewModel>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId)
         {
-            // Bắt đầu Query: Kéo theo dữ liệu Employee, Position và Department
+            // 1. Lấy tất cả dữ liệu gốc ra trước (đã áp dụng bộ lọc search, date...)
             var query = _context.Attendances
                 .Include(a => a.Employee)
-                    .ThenInclude(e => e.Job)
-                        .ThenInclude(j => j.Position)
-                .Include(a => a.Employee)
-                    .ThenInclude(e => e.Job)
-                        .ThenInclude(j => j.Department)
+                .ThenInclude(e => e.Job) // Bao gồm Job để lấy phòng ban
+                .ThenInclude(j => j.Department)
                 .AsQueryable();
 
-            // 1. Tìm kiếm theo Tên hoặc Mã NV
             if (!string.IsNullOrEmpty(search))
             {
-                search = search.ToLower().Trim();
-                query = query.Where(a =>
-                    (a.Employee.EmployeeCode != null && a.Employee.EmployeeCode.ToLower().Contains(search)) ||
-                    // Thay FullName bằng first_name và last_name (hoặc thuộc tính tương ứng trong Model Employee của bạn)
-                    (a.Employee.FirstName != null && a.Employee.FirstName.ToLower().Contains(search)) ||
-                    (a.Employee.LastName != null && a.Employee.LastName.ToLower().Contains(search))
-                );
+                query = query.Where(a => a.Employee.EmployeeCode.Contains(search)
+                                      || a.Employee.FirstName.Contains(search)
+                                      || a.Employee.LastName.Contains(search));
             }
 
-            // 2. Lọc theo Từ ngày
-            if (fromDate.HasValue)
+            if (fromDate.HasValue) query = query.Where(a => a.Date >= fromDate.Value);
+            if (toDate.HasValue) query = query.Where(a => a.Date <= toDate.Value);
+
+            // Lọc theo phòng ban (thông qua Job)
+            if (departmentId.HasValue && departmentId > 0)
             {
-                query = query.Where(a => a.Date >= fromDate.Value);
+                query = query.Where(a => a.Employee.Job != null && a.Employee.Job.DepartmentId == departmentId.Value);
             }
 
-            // 3. Lọc theo Đến ngày
-            if (toDate.HasValue)
-            {
-                query = query.Where(a => a.Date <= toDate.Value);
-            }
+            var rawData = await query.ToListAsync();
 
-            // 4. Lọc theo Trạng thái
+            // 2. LOGIC GOM NHÓM (GROUP BY)
+            var groupedData = rawData
+                .GroupBy(a => new { a.EmployeeId, a.Date })
+                .Select(group =>
+                {
+                    var firstRecord = group.First();
+                    var firstIn = group.Where(x => x.CheckInTime.HasValue).Min(x => x.CheckInTime);
+                    var lastOut = group.Where(x => x.CheckOutTime.HasValue).Max(x => x.CheckOutTime);
+
+                    // Tính lại tổng giờ làm việc trong ngày
+                    decimal totalHrs = 0;
+                    if (firstIn.HasValue && lastOut.HasValue)
+                    {
+                        totalHrs = (decimal)(lastOut.Value - firstIn.Value).TotalHours;
+                        totalHrs = Math.Round(totalHrs, 2);
+                    }
+
+                    return new DailyAttendanceViewModel
+                    {
+                        EmployeeId = group.Key.EmployeeId,
+                        EmployeeCode = firstRecord.Employee.EmployeeCode,
+                        FullName = firstRecord.Employee.FirstName + " " + firstRecord.Employee.LastName,
+                        DepartmentName = firstRecord.Employee.Job?.Department?.Name ?? "Chưa xếp phòng",
+                        Date = group.Key.Date,
+
+                        FirstCheckIn = firstIn,
+                        LastCheckOut = lastOut,
+                        TotalHours = totalHrs,
+
+                        // Quy định 8:30 là muộn (bạn có thể thay đổi số này)
+                        IsLate = firstIn.HasValue && firstIn.Value > new TimeSpan(8, 30, 0),
+
+                        // Đổ toàn bộ các lần quẹt thẻ trong ngày vào danh sách này
+                        // Sắp xếp theo giờ để hiển thị cho đẹp
+                        Details = group.OrderBy(x => x.CheckInTime ?? x.CheckOutTime).ToList()
+                    };
+                })
+                .OrderByDescending(x => x.Date)
+                .ThenBy(x => x.EmployeeCode)
+                .ToList();
+
+            // 3. Lọc theo trạng thái (Hợp lệ / Không hợp lệ)
             if (!string.IsNullOrEmpty(status))
             {
-                if (status == "late") query = query.Where(a => a.IsLate);
-                else if (status == "ontime") query = query.Where(a => !a.IsLate && a.CheckInTime != null);
-                else if (status == "absent") query = query.Where(a => a.CheckInTime == null);
+                if (status == "HopLe")
+                    groupedData = groupedData.Where(a => a.IsPerfect).ToList();
+                else if (status == "KhongHopLe")
+                    groupedData = groupedData.Where(a => !a.IsPerfect).ToList();
             }
 
-            //5. Phòng ban
-            if (departmentId.HasValue && departmentId.Value > 0)
-            {
-                // Kiểm tra xem khóa ngoại trong Model Employee là DepartmentId hay department_id để sửa cho đúng nhé
-                query = query.Where(a => a.Employee.Job.DepartmentId == departmentId.Value);
-            }
-
-            return await query.OrderByDescending(a => a.Date).ToListAsync();
+            return groupedData;
         }
 
         public async Task<List<Department>> GetAllDepartmentsAsync()
@@ -106,31 +134,20 @@ namespace SmartHR_Payroll.Repositories
                 .FirstOrDefaultAsync(e => e.EmployeeCode == employeeCode);
         }
 
-        public async Task UpsertAttendanceAsync(Attendance attendance)
+        public async Task AddMultipleAttendanceAsync(Attendance attendance)
         {
-            // Kiểm tra xem ngày hôm đó nhân viên đã có dữ liệu chưa
-            var existingRecord = await _context.Attendances
-                .FirstOrDefaultAsync(a => a.EmployeeId == attendance.EmployeeId && a.Date == attendance.Date);
 
-            if (existingRecord == null)
+            bool isExisting = await _context.Attendances.AnyAsync(a =>
+                a.EmployeeId == attendance.EmployeeId &&
+                a.Date == attendance.Date &&
+                a.CheckInTime == attendance.CheckInTime &&
+                a.CheckOutTime == attendance.CheckOutTime);
+
+            if (!isExisting)
             {
-                // Nếu chưa có -> Thêm mới
                 await _context.Attendances.AddAsync(attendance);
+                await _context.SaveChangesAsync();
             }
-            else
-            {
-                // Nếu đã có -> Cập nhật lại giờ từ file Excel
-                // Chỉ cập nhật nếu file Excel có dữ liệu, nếu không giữ nguyên giờ cũ
-                existingRecord.CheckInTime = attendance.CheckInTime ?? existingRecord.CheckInTime;
-                existingRecord.CheckOutTime = attendance.CheckOutTime ?? existingRecord.CheckOutTime;
-                existingRecord.TotalHours = attendance.TotalHours;
-                existingRecord.IsLate = attendance.IsLate;
-                existingRecord.Note = attendance.Note;
-
-                _context.Attendances.Update(existingRecord);
-            }
-
-            await _context.SaveChangesAsync();
         }
     }
 }
