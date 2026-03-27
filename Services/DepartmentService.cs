@@ -19,8 +19,6 @@ namespace SmartHR_Payroll.Services
         }
 
         // ==========================================
-        // CHUYỂN LOGIC SINH MÃ TỪ CONTROLLER SANG ĐÂY
-        // ==========================================
         private string GenerateDepartmentCode(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "DEP" + new Random().Next(100, 999);
@@ -71,5 +69,33 @@ namespace SmartHR_Payroll.Services
         }
 
         public async Task DeactivateAsync(int id) => await _departmentRepository.DeactivateAsync(id);
+
+        // LOGIC BỔ NHIỆM QUẢN LÝ
+        public async Task AssignManagerAsync(int departmentId, int employeeId, string currentUserName)
+        {
+            // 1. Dùng lại hàm check của bạn: Đảm bảo nhân viên này chưa làm quản lý chỗ khác
+            bool isConflict = await CheckManagerConflictAsync(employeeId, departmentId);
+            if (isConflict)
+            {
+                throw new Exception("Nhân viên này đang là Quản lý của một phòng ban khác!");
+            }
+
+            // 2. Lấy phòng ban từ DB
+            var department = await _departmentRepository.GetByIdAsync(departmentId);
+            if (department == null)
+            {
+                throw new Exception("Không tìm thấy phòng ban!");
+            }
+
+            // 3. Cập nhật ID Quản lý và lưu vết hệ thống
+            department.ManagerId = employeeId;
+            department.UpdatedBy = currentUserName;
+            department.UpdatedAt = DateTime.UtcNow;
+
+            // 4. Lưu vào Database
+            await _departmentRepository.UpdateAsync(department);
+        }
     }
+
+
 }

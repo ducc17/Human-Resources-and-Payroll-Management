@@ -28,5 +28,6 @@ namespace SmartHR_Payroll.Services.IServices
         Task<EmployeeDeductionListViewModel?> GetEmployeeDeductionsAsync(int employeeId);
         Task<List<Deduction>> GetActiveDeductionsAsync();
         Task<(bool Success, string Message)> AddEmployeeDeductionAsync(int employeeId, int deductionId, decimal amount, DateOnly effectiveDate, string actor);
+        Task<List<Bank>> GetAllBanksAsync();
     }
 }

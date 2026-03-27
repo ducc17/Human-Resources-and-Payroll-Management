@@ -5,7 +5,7 @@ using SmartHR_Payroll.Services.IServices;
 
 namespace SmartHR_Payroll.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Manager,HR")]
     public class LeaveRequestController : Controller
     {
         private readonly ILeaveRequestService _service;
@@ -92,5 +92,7 @@ namespace SmartHR_Payroll.Controllers
 
             return RedirectToAction("Index");
         }
+
+
     }
 }

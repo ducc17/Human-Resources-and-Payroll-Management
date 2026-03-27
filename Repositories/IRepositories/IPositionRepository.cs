@@ -11,5 +11,6 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task CreateAsync(Position position);
         Task UpdateAsync(Position position);
         Task DeactivateAsync(int id);
+        Task<bool> HasEmployeesAsync(int positionId);
     }
 }

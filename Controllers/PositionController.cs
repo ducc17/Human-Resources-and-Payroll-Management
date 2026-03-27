@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartHR_Payroll.Models;
 using SmartHR_Payroll.Services.IServices;
 
 namespace SmartHR_Payroll.Controllers
 {
+    [Authorize(Roles = "HR")]
     public class PositionController : Controller
     {
         private readonly IPositionService _positionService;
@@ -91,8 +93,23 @@ namespace SmartHR_Payroll.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(int id)
         {
-            await _positionService.DeactivateAsync(id);
-            TempData["Success"] = "Đã khóa vị trí này!";
+            try
+            {
+                // Gọi Service xử lý khóa
+                await _positionService.DeactivateAsync(id);
+                TempData["Success"] = "Đã khóa vị trí này!";    
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (Exception)
+            {
+                // Bắt các lỗi vặt khác (mất kết nối DB,...)
+                TempData["Error"] = "Lỗi hệ thống! Không thể thao tác lúc này.";
+            }
+
+            // Dù thành công hay thất bại cũng quay lại trang danh sách (Index) để hiển thị thông báo
             return RedirectToAction(nameof(Index));
         }
     }

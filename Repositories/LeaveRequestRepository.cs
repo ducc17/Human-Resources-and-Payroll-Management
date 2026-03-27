@@ -98,5 +98,29 @@ namespace SmartHR_Payroll.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> CountPendingAsync(int? departmentId, int? employeeId)
+        {
+            var query = _context.LeaveRequests
+                .Include(x => x.Employee)
+                    .ThenInclude(e => e.Job)
+                .AsQueryable();
+
+            query = query.Where(x => x.Status == LeaveStatus.Pending);
+
+            // Manager → theo phòng ban
+            if (departmentId.HasValue)
+            {
+                query = query.Where(x => x.Employee.Job.DepartmentId == departmentId.Value);
+            }
+
+            // Employee → chỉ thấy của mình
+            if (employeeId.HasValue)
+            {
+                query = query.Where(x => x.EmployeeId == employeeId.Value);
+            }
+
+            return await query.CountAsync();
+        }
     }
 }

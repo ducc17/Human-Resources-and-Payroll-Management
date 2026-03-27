@@ -1,4 +1,5 @@
-﻿using SmartHR_Payroll.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartHR_Payroll.Models;
 using SmartHR_Payroll.Repositories.IRepositories;
 using System.Security.Claims;
 using static SmartHR_Payroll.Models.Status;
@@ -13,6 +14,7 @@ namespace SmartHR_Payroll.Services
         {
             _repo = repo;
         }
+
 
         public async Task<List<LeaveRequest>> GetAllAsync(
             string? search,
@@ -111,6 +113,30 @@ namespace SmartHR_Payroll.Services
 
             await _repo.UpdateAsync(entity);
             await _repo.SaveChangesAsync();
+        }
+
+        public async Task<int> CountPendingAsync(ClaimsPrincipal user)
+        {
+            int? departmentId = null;
+            int? employeeId = null;
+
+            // Manager
+            if (user.IsInRole("Manager"))
+            {
+                var dept = user.FindFirst("DepartmentId")?.Value;
+                if (int.TryParse(dept, out int d))
+                    departmentId = d;
+            }
+
+            // Employee
+            if (user.IsInRole("Employee"))
+            {
+                var emp = user.FindFirst("EmployeeId")?.Value;
+                if (int.TryParse(emp, out int e))
+                    employeeId = e;
+            }
+
+            return await _repo.CountPendingAsync(departmentId, employeeId);
         }
     }
 }

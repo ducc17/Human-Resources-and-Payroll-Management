@@ -295,5 +295,9 @@ namespace SmartHR_Payroll.Repositories
                 throw new InvalidOperationException($"Lỗi khi lưu khoản trừ nhân viên: {ex.Message}", ex);
             }
         }
+        public async Task<List<Bank>> GetAllBanksAsync()
+        {
+            return await _context.Banks.Where(b => !b.IsDeleted).ToListAsync();
+        }
     }
 }

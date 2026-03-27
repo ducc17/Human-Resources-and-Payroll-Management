@@ -44,6 +44,12 @@ namespace SmartHR_Payroll.Services
             };
         }
 
+        public async Task<List<Bank>> GetAllBanksAsync()
+        {
+            // Lấy danh sách ngân hàng chưa bị xóa, sắp xếp theo tên viết tắt (VCB, BIDV...)
+            return await _employeeRepository.GetAllBanksAsync();
+        }
+
         public async Task<EditProfileViewModel?> GetEditProfileAsync(int employeeId)
         {
             var emp = await _employeeRepository.GetEmployeeProfileAsync(employeeId);
@@ -54,7 +60,7 @@ namespace SmartHR_Payroll.Services
                 EmployeeId = emp.EmployeeId,
                 PhoneNumber = emp.PhoneNumber,
                 Address = emp.Address,
-                BankName = emp.Bank?.BankName ?? string.Empty,
+                BankId = emp.BankId,
                 BankAccountNumber = emp.BankAccountNumber
             };
         }
@@ -69,21 +75,10 @@ namespace SmartHR_Payroll.Services
             emp.Address = model.Address;
             emp.BankAccountNumber = model.BankAccountNumber;
 
-            if (!string.IsNullOrWhiteSpace(model.BankName))
-            {
-                var banks = await _employeeRepository.GetBanksAsync();
-                var selectedBank = banks.FirstOrDefault(b =>
-                    string.Equals(b.BankName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(b.ShortName, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(b.BankCode, model.BankName.Trim(), StringComparison.OrdinalIgnoreCase));
-
-                if (selectedBank == null)
-                {
-                    return (false, "Ngân hàng không hợp lệ.");
-                }
-
-                emp.BankId = selectedBank.BankId;
-            }
+            // ĐÃ FIX: Gán thẳng BankId từ Form (Dropdown) gửi lên. 
+            // Nếu người dùng chọn "-- Chọn ngân hàng --" thì model.BankId sẽ là null, 
+            // hệ thống cũng tự hiểu và lưu null xuống DB.
+            emp.BankId = model.BankId;
 
             await _employeeRepository.UpdateEmployeeAsync(emp);
             return (true, "Cập nhật hồ sơ thành công!");

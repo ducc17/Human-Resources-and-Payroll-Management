@@ -52,7 +52,7 @@ namespace SmartHR_Payroll.Services
                             string dateStr = worksheet.Cells[row, 2].Text?.Trim();
                             string checkInStr = worksheet.Cells[row, 3].Text?.Trim();
                             string checkOutStr = worksheet.Cells[row, 4].Text?.Trim();
-
+                            string excelNote = worksheet.Cells[row, 5].Text?.Trim();
                             if (string.IsNullOrEmpty(empCode)) continue;
 
                             var employee = await _attendanceRepository.GetEmployeeByCodeAsync(empCode);
@@ -93,7 +93,9 @@ namespace SmartHR_Payroll.Services
                             }
 
                             bool isLate = checkInTime.HasValue && checkInTime.Value > new TimeSpan(8, 30, 0);
-
+                            string finalNote = !string.IsNullOrEmpty(excelNote)
+                                        ? excelNote
+                                        : "Import từ file Excel IoT";
                             // Khởi tạo đối tượng bằng các thuộc tính snake_case khớp với DB
                             var attendanceRecord = new Attendance
                             {
@@ -103,10 +105,10 @@ namespace SmartHR_Payroll.Services
                                 CheckOutTime = checkOutTime,
                                 TotalHours = totalHours,
                                 IsLate = isLate,
-                                Note = "Import từ file Excel IoT"
+                                Note = finalNote
                             };
 
-                            await _attendanceRepository.UpsertAttendanceAsync(attendanceRecord);
+                            await _attendanceRepository.AddMultipleAttendanceAsync(attendanceRecord);
                             successCount++;
                         }
                         catch (Exception ex)
@@ -126,10 +128,59 @@ namespace SmartHR_Payroll.Services
             return await _attendanceRepository.GetAllDepartmentsAsync();
         }
 
-        public async Task<List<Attendance>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId)
+        public async Task<List<DailyAttendanceViewModel>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId)
         {
             return await _attendanceRepository.GetAllAttendancesAsync(search, fromDate, toDate, status, departmentId);
         }
 
+        public async Task<(List<DailyAttendanceViewModel> Items, int TotalPages)> GetAllAttendancesAsync(
+            string? search,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? status,
+            int? departmentId,
+            int page = 1,
+            int pageSize = 10)
+        {
+            // 1. Lấy toàn bộ dữ liệu đã lọc và gom nhóm từ Repository
+            var allData = await _attendanceRepository.GetAllAttendancesAsync(search, fromDate, toDate, status, departmentId);
+
+            // 2. LOGIC PHÂN TRANG (Đã được chuyển xuống đây)
+            int totalRecords = allData.Count;
+            int totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+            // Cắt lấy đúng số lượng dòng của trang hiện tại
+            var pagedData = allData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // 3. Trả về cả Data và Tổng số trang
+            return (pagedData, totalPages);
+        }
+        public async Task<Dictionary<int, DailyAttendanceViewModel>> GetMyAttendanceCalendarAsync(int employeeId, int month, int year)
+        {
+            // 1. Tính toán ngày bắt đầu và kết thúc của tháng
+            var startDate = new DateOnly(year, month, 1);
+            var endDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
+
+            // 2. Lấy dữ liệu thô từ Repository
+            var rawData = await _attendanceRepository.GetMyAttendanceHistoryAsync(employeeId, startDate, endDate, null);
+
+            // 3. Xử lý gom nhóm (Group By) ngay tại Service
+            var dailyData = rawData.GroupBy(a => a.Date.Day)
+        .ToDictionary(g => g.Key, g => new DailyAttendanceViewModel
+        {
+            Date = g.First().Date,
+            FirstCheckIn = g.Where(x => x.CheckInTime.HasValue).Min(x => x.CheckInTime),
+            LastCheckOut = g.Where(x => x.CheckOutTime.HasValue).Max(x => x.CheckOutTime),
+            IsLate = g.Any(x => x.IsLate),
+            TotalHours = g.Where(x => x.CheckInTime.HasValue && x.CheckOutTime.HasValue).Any()
+                ? (decimal)(g.Max(x => x.CheckOutTime) - g.Min(x => x.CheckInTime)).Value.TotalHours
+                : 0,
+
+            // === BỔ SUNG DÒNG NÀY ĐỂ LẤY CHI TIẾT ===
+            Details = g.OrderBy(x => x.CheckInTime ?? x.CheckOutTime).ToList()
+        });
+
+            return dailyData;
+        }
     }
 }

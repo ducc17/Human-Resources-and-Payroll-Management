@@ -36,5 +36,6 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task<List<EmployeeDeduction>> GetEmployeeDeductionsAsync(int employeeId);
         Task<EmployeeDeduction?> GetEmployeeDeductionAsync(int employeeId, int deductionId, DateOnly effectiveDate);
         Task SaveEmployeeDeductionAsync(EmployeeDeduction employeeDeduction);
+        Task<List<Bank>> GetAllBanksAsync();
     }
 }

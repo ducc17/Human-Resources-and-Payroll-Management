@@ -17,13 +17,6 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Chọn Quản lý (Manager)</label>
-                    <select asp-for="ManagerId" class="form-select" asp-items="ViewBag.Employees">
-                        <option value="">-- Để trống nếu chưa bổ nhiệm --</option>
-                    </select>
-                </div>
-
                 <div class="d-flex justify-content-between">
                     <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
                     <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Lưu dữ liệu</button>
