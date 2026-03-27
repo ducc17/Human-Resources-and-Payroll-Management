@@ -21,5 +21,6 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task<List<Role>> GetRolesAsync();
         Task AddEmployeeAsync(Employee employee);
         Task<Employee?> GetByIdAsync(int id);
+        Task<List<Bank>> GetAllBanksAsync();
     }
 }

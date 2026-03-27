@@ -16,5 +16,6 @@ namespace SmartHR_Payroll.Services.IServices
         Task<(bool Success, string Message)> UnbanEmployeeAsync(int employeeId, string actor);
         Task<EmployeeContractsViewModel?> GetEmployeeContractsAsync(int employeeId);
         Task<Employee?> GetByIdAsync(int id);
+        Task<List<Bank>> GetAllBanksAsync();
     }
 }

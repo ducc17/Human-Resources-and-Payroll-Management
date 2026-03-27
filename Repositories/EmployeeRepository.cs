@@ -151,5 +151,9 @@ namespace SmartHR_Payroll.Repositories
                     .ThenInclude(j => j.Position)
                 .FirstOrDefaultAsync(e => e.EmployeeId == id);
         }
+        public async Task<List<Bank>> GetAllBanksAsync()
+        {
+            return await _context.Banks.Where(b => !b.IsDeleted).ToListAsync();
+        }
     }
 }

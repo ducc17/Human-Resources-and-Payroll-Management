@@ -15,7 +15,7 @@ namespace SmartHR_Payroll.ViewModels.Profile
         [Required(ErrorMessage = "Địa chỉ không được để trống")]
         public string Address { get; set; } = string.Empty;
 
-        public string BankName { get; set; } = string.Empty;
+        public int? BankId { get; set; }
         public string BankAccountNumber { get; set; } = string.Empty;
     }
 }
