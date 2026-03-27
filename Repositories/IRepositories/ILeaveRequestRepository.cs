@@ -18,4 +18,6 @@ public interface ILeaveRequestRepository
     Task UpdateAsync(LeaveRequest entity);
 
     Task SaveChangesAsync();
+
+    Task<int> CountPendingAsync(int? departmentId, int? employeeId);
 }
