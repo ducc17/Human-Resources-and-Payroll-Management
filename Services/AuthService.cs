@@ -36,7 +36,8 @@ namespace SmartHR_Payroll.Services
                 new Claim(ClaimTypes.Name, employee.FullName),
                 new Claim(ClaimTypes.Email, employee.Email),
                 new Claim(ClaimTypes.Role, employee.Role.Name ?? "Employee"),
-                
+
+                new Claim("DepartmentId", employee.Job.DepartmentId.ToString()),
                 new Claim("DepartmentCode", employee.Job?.Department?.Code ?? "N/A"),
                 new Claim("PositionName", employee.Job?.Position?.Name ?? "N/A"),
 

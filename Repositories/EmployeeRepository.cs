@@ -37,19 +37,48 @@ namespace SmartHR_Payroll.Repositories
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
         }
 
-        public async Task<(List<Employee> Employees, int TotalCount)> GetEmployeesPagedAsync(int page, int pageSize)
+        public async Task<(List<Employee> Employees, int TotalCount)> GetEmployeesPagedAsync(
+             int page,
+             int pageSize,
+             int? departmentId,
+             string keyword,
+             string status)
         {
             var query = _context.Employees
                 .IgnoreQueryFilters()
                 .Include(e => e.Bank)
-                .Include(e => e.Job)
-                    .ThenInclude(j => j.Department)
-                .Include(e => e.Job)
-                    .ThenInclude(j => j.Position)
-                .OrderByDescending(e => e.CreatedAt)
+                .Include(e => e.Job).ThenInclude(j => j.Department)
+                .Include(e => e.Job).ThenInclude(j => j.Position)
                 .AsQueryable();
 
+            // Manager filter
+            if (departmentId.HasValue)
+            {
+                query = query.Where(e => e.Job.DepartmentId == departmentId.Value);
+            }
+
+            // SEARCH
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(e =>
+                    e.EmployeeCode.Contains(keyword) ||
+                    (e.FirstName + " " + e.LastName).Contains(keyword) ||
+                    e.Email.Contains(keyword) ||
+                    e.PhoneNumber.Contains(keyword)
+                );
+            }
+
+            // STATUS FILTER
+            if (!string.IsNullOrEmpty(status) &&
+                Enum.TryParse<Status.EmployeeStatus>(status, out var parsedStatus))
+            {
+                query = query.Where(e => e.Status == parsedStatus);
+            }
+
+            query = query.OrderByDescending(e => e.CreatedAt);
+
             var totalCount = await query.CountAsync();
+
             var employees = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
