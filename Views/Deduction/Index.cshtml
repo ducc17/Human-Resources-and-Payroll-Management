@@ -1,0 +1,260 @@
+@model SmartHR_Payroll.ViewModels.Deduction.DeductionIndexViewModel
+
+@{
+    ViewData["Title"] = "Danh sách khấu trừ";
+}
+
+<style>
+    .action-icon-btn {
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .deduction-table thead th {
+        background: #f8fafc;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        border-bottom: 1px solid #dbe4ee;
+        vertical-align: middle;
+    }
+
+    .deduction-table tbody td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .deduction-table tbody tr:hover {
+        background-color: #f8fbff;
+    }
+</style>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>
+                Danh sách khấu trừ
+            </h4>
+            <p class="text-muted mb-3">Quản lý các loại khấu trừ và theo dõi số nhân viên đang áp dụng.</p>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-circle-plus me-1"></i>
+            Thêm khấu trừ
+        </a>
+    </div>
+
+    <div class="px-4 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <form method="get" asp-action="Index" class="d-flex gap-2 flex-wrap">
+            <input type="text"
+                   name="keyword"
+                   value="@ViewBag.CurrentKeyword"
+                   class="form-control"
+                   placeholder="Tìm tên khấu trừ..."
+                   style="width: 240px;" />
+
+            <select name="sortBy" class="form-select" style="width: 220px;">
+                <option value="">Sắp xếp mặc định</option>
+                <option value="emp_desc" selected="@(ViewBag.CurrentSort == "emp_desc")">Nhiều nhân viên nhất</option>
+                <option value="emp_asc" selected="@(ViewBag.CurrentSort == "emp_asc")">Ít nhân viên nhất</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary px-3">Tìm</button>
+            <a asp-action="Index" class="btn btn-outline-secondary px-3">Reset</a>
+        </form>
+    </div>
+
+    <div class="card-body pt-2">
+        @if (!Model.Deductions.Any())
+        {
+            <div class="alert alert-info mb-0">Chưa có khấu trừ nào.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle deduction-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên khấu trừ</th>
+                            <th>Số NV áp dụng</th>
+                            <th>Người tạo</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Deductions)
+                        {
+                            <tr class="@(item.IsDeleted ? "table-secondary" : "")">
+                                <td class="fw-semibold">@item.Name</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">@item.EmployeeCount</span>
+                                </td>
+                                <td>@item.CreatedBy</td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (!item.IsDeleted)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã khóa</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.DeductionId"
+                                           class="btn btn-sm btn-outline-primary action-icon-btn"
+                                           title="Sửa khấu trừ">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        @if (!item.IsDeleted)
+                                        {
+                                            <form asp-action="Deactivate" asp-route-id="@item.DeductionId" method="post" class="d-inline form-delete">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger btn-delete action-icon-btn"
+                                                        title="Khóa khấu trừ">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="Restore" asp-route-id="@item.DeductionId" method="post" class="d-inline form-restore">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-success btn-restore action-icon-btn"
+                                                        title="Khôi phục khấu trừ">
+                                                    <i class="fa-solid fa-rotate-left"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-muted small mt-3">
+                Tổng: <strong>@Model.TotalCount</strong> khấu trừ
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-2">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage - 1)"
+                               asp-route-keyword="@ViewBag.CurrentKeyword"
+                               asp-route-sortBy="@ViewBag.CurrentSort">
+                                Trước
+                            </a>
+                        </li>
+
+                        @for (var i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-keyword="@ViewBag.CurrentKeyword"
+                                   asp-route-sortBy="@ViewBag.CurrentSort">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage + 1)"
+                               asp-route-keyword="@ViewBag.CurrentKeyword"
+                               asp-route-sortBy="@ViewBag.CurrentSort">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"]?.ToString()));
+        const errorMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString()));
+
+        if (successMessage) {
+            Swal.fire({
+                title: 'Thành công',
+                text: successMessage,
+                icon: 'success',
+                confirmButtonText: 'Đóng'
+            });
+        }
+
+        if (errorMessage) {
+            Swal.fire({
+                title: 'Có lỗi',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'Đóng'
+            });
+        }
+
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function () {
+                var form = this.closest('form');
+                Swal.fire({
+                    title: 'Xác nhận khóa?',
+                    text: 'Khấu trừ này sẽ được chuyển sang trạng thái đã khóa.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.btn-restore').forEach(button => {
+            button.addEventListener('click', function () {
+                var form = this.closest('form');
+                Swal.fire({
+                    title: 'Khôi phục khấu trừ?',
+                    text: 'Khấu trừ này sẽ hoạt động trở lại.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -8,7 +8,6 @@ namespace SmartHR_Payroll.ViewModels.Contract
         [Required(ErrorMessage = "Vui lòng chọn nhân viên")]
         public int EmployeeId { get; set; }
 
-        [Required(ErrorMessage = "Mã hợp đồng không được để trống")]
         [StringLength(50, ErrorMessage = "Mã hợp đồng tối đa 50 ký tự")]
         public string ContractNumber { get; set; } = string.Empty;
 

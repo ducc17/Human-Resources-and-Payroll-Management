@@ -7,5 +7,7 @@ namespace SmartHR_Payroll.Services.IServices
     {
         Task<List<Employee>> GetEmployeesForCreateAsync();
         Task<(bool Success, string Message)> CreateContractAsync(CreateContractViewModel model, string actor);
+        Task<(bool Success, string Message)> CancelContractAsync(int contractId, string actor);
+        Task<(bool Success, string Message)> ConfirmContractByEmployeeAsync(int contractId, int employeeId, string actor);
     }
 }

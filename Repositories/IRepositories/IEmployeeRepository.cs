@@ -28,5 +28,13 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task<List<Role>> GetRolesAsync();
         Task AddEmployeeAsync(Employee employee);
         Task<Employee?> GetByIdAsync(int id);
+        Task<List<Allowance>> GetActiveAllowancesAsync();
+        Task<List<EmployeeAllowance>> GetEmployeeAllowancesAsync(int employeeId);
+        Task<EmployeeAllowance?> GetEmployeeAllowanceAsync(int employeeId, int allowanceId, DateOnly effectiveDate);
+        Task SaveEmployeeAllowanceAsync(EmployeeAllowance employeeAllowance);
+        Task<List<Deduction>> GetActiveDeductionsAsync();
+        Task<List<EmployeeDeduction>> GetEmployeeDeductionsAsync(int employeeId);
+        Task<EmployeeDeduction?> GetEmployeeDeductionAsync(int employeeId, int deductionId, DateOnly effectiveDate);
+        Task SaveEmployeeDeductionAsync(EmployeeDeduction employeeDeduction);
     }
 }

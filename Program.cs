@@ -68,6 +68,14 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
+//Allowance
+builder.Services.AddScoped<IAllowanceRepository, AllowanceRepository>();
+builder.Services.AddScoped<IAllowanceService, AllowanceService>();
+
+//Deduction
+builder.Services.AddScoped<IDeductionRepository, DeductionRepository>();
+builder.Services.AddScoped<IDeductionService, DeductionService>();
+
 
 var app = builder.Build();
 

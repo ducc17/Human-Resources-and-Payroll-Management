@@ -188,6 +188,7 @@
 					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('updatedAt')"> Ngày cập nhật</label>
 					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('updatedBy')"> Người cập nhật</label>
 					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('position')"> Chức vụ</label>
+					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('role')"> Vai trò</label>
 					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('email')"> Email</label>
 					<label style="display:block;"><input type="checkbox" checked onchange="toggleColumn('phone')"> SĐT</label>
 				</div>
@@ -197,14 +198,11 @@
 	</div>
 
 	<div class="card-body pt-2">
-		@if (TempData["SuccessMessage"] != null)
-		{
-			<div class="alert alert-success">@TempData["SuccessMessage"]</div>
-		}
-
-		@if (TempData["ErrorMessage"] != null)
-		{
-			<div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+		@{
+			var successMessage = TempData["SuccessMessage"]?.ToString();
+			var errorMessage = TempData["ErrorMessage"]?.ToString();
+			var modalMessage = successMessage ?? errorMessage;
+			var isSuccess = !string.IsNullOrWhiteSpace(successMessage);
 		}
 
 		@if (!Model.Employees.Any())
@@ -229,6 +227,7 @@
 							<th data-col="updatedBy">Người cập nhật</th>
 							<th data-col="department">Phòng ban</th>
 							<th data-col="position">Chức vụ</th>
+							<th data-col="role">Vai trò</th>
 							<th data-col="email">Email</th>
 							<th data-col="phone">Số điện thoại</th>
 							<th data-col="status">Trạng thái</th>
@@ -264,6 +263,7 @@
 								<td data-col="updatedBy">@(string.IsNullOrWhiteSpace(employee.UpdatedBy) ? "-" : employee.UpdatedBy)</td>
 								<td data-col="department">@employee.DepartmentName</td>
 								<td data-col="position">@employee.PositionName</td>
+								<td data-col="role">@employee.RoleName</td>
 								<td data-col="email">@employee.Email</td>
 								<td data-col="phone">@employee.PhoneNumber</td>
 								<td data-col="status">
@@ -293,7 +293,7 @@
 										{
 											@if (employee.Status == Status.EmployeeStatus.Terminated)
 											{
-												<form asp-action="Unban" method="post" onsubmit="return confirm('Bạn có chắc muốn mở khóa account nhân viên này?');">
+												<form asp-action="Unban" method="post">
 													@Html.AntiForgeryToken()
 													<input type="hidden" name="employeeId" value="@employee.EmployeeId" />
 													<input type="hidden" name="page" value="@Model.CurrentPage" />
@@ -306,7 +306,7 @@
 											}
 											else
 											{
-												<form asp-action="Ban" method="post" onsubmit="return confirm('Bạn có chắc muốn ban account nhân viên này?');">
+												<form asp-action="Ban" method="post">
 													@Html.AntiForgeryToken()
 													<input type="hidden" name="employeeId" value="@employee.EmployeeId" />
 													<input type="hidden" name="page" value="@Model.CurrentPage" />
@@ -317,6 +317,26 @@
 													</button>
 												</form>
 											}
+
+											<a asp-action="AddAllowance"
+											   asp-route-employeeId="@employee.EmployeeId"
+											   asp-route-page="@Model.CurrentPage"
+											   asp-route-keyword="@Context.Request.Query["keyword"]"
+											   asp-route-status="@Context.Request.Query["status"]"
+											   class="btn btn-outline-warning btn-sm action-icon-btn"
+											   title="Khoản phụ cấp">
+												<i class="fa-solid fa-plus"></i>
+											</a>
+
+											<a asp-action="AddDeduction"
+											   asp-route-employeeId="@employee.EmployeeId"
+											   asp-route-page="@Model.CurrentPage"
+											   asp-route-keyword="@Context.Request.Query["keyword"]"
+											   asp-route-status="@Context.Request.Query["status"]"
+											   class="btn btn-outline-secondary btn-sm action-icon-btn"
+											   title="Khoản trừ">
+												<i class="fa-solid fa-minus"></i>
+											</a>
 										}
 									</div>
 								</td>
@@ -377,6 +397,37 @@
 	</div>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(modalMessage))
+{
+	<div class="modal fade" id="actionResultModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content border-0 shadow">
+				<div class="modal-header @(isSuccess ? "bg-success" : "bg-danger") text-white">
+					<h5 class="modal-title">
+						@if (isSuccess)
+						{
+							<i class="fa-solid fa-circle-check me-2"></i>
+							<span>Thành công</span>
+						}
+						else
+						{
+							<i class="fa-solid fa-circle-xmark me-2"></i>
+							<span>Thông báo lỗi</span>
+						}
+					</h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body py-4">
+					<p class="mb-0">@modalMessage</p>
+				</div>
+				<div class="modal-footer border-0 pt-0">
+					<button type="button" class="btn @(isSuccess ? "btn-success" : "btn-danger")" data-bs-dismiss="modal">Đã hiểu</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
 <script>
 	function toggleColumn(col) {
 		const elements = document.querySelectorAll(`[data-col="${col}"]`);
@@ -430,4 +481,12 @@
 	});
 
 	window.addEventListener("DOMContentLoaded", loadColumns);
+
+	document.addEventListener("DOMContentLoaded", function () {
+		const modalEl = document.getElementById("actionResultModal");
+		if (!modalEl || typeof bootstrap === "undefined") return;
+
+		const modal = new bootstrap.Modal(modalEl);
+		modal.show();
+	});
 </script>

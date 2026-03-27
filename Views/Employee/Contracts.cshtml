@@ -11,12 +11,34 @@
             <h4 class="fw-bold mb-1"><i class="fa-solid fa-file-contract text-primary me-2"></i>Danh sách hợp đồng</h4>
             <p class="text-muted mb-3">Nhân viên: <strong>@Model.EmployeeCode - @Model.FullName</strong></p>
         </div>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
-        </a>
+        <div class="d-flex gap-2">
+            @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+            {
+                <a asp-controller="Contract"
+                   asp-action="Create"
+                   asp-route-employeeId="@Model.EmployeeId"
+                   class="btn btn-primary">
+                    <i class="fa-solid fa-plus me-1"></i>Tạo hợp đồng
+                </a>
+            }
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
     </div>
 
     <div class="card-body pt-2">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
         @if (!Model.Contracts.Any())
         {
             <div class="alert alert-info mb-0">Nhân viên này chưa có hợp đồng nào.</div>
@@ -33,6 +55,7 @@
                             <th>Ngày kết thúc</th>
                             <th>Lương cơ bản</th>
                             <th>Trạng thái kích hoạt</th>
+                            <th class="text-end">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,13 +68,43 @@
                                 <td>@(contract.EndDate?.ToString("dd/MM/yyyy") ?? "Không thời hạn")</td>
                                 <td>@contract.BaseSalary.ToString("N0") đ</td>
                                 <td>
-                                    @if (contract.IsActive)
+                                    @if (contract.IsDeleted)
+                                    {
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                    }
+                                    else if (contract.IsActive)
                                     {
                                         <span class="badge bg-success">Đã kích hoạt</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Chưa kích hoạt</span>
+                                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+                                    {
+                                        var canCancel = contract.IsActive && !contract.IsDeleted;
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                onclick="@(canCancel ? $"openCancelModal({contract.ContractId}, '{contract.ContractNumber}')" : string.Empty)"
+                                                disabled="@(!canCancel)">
+                                            Hủy hợp đồng
+                                        </button>
+                                    }
+                                    else if (User.IsInRole("Employee") && !contract.IsActive && !contract.IsDeleted)
+                                    {
+                                        <form asp-controller="Contract" asp-action="Confirm" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="contractId" value="@contract.ContractId" />
+                                            <input type="hidden" name="employeeId" value="@Model.EmployeeId" />
+                                            <button type="submit" class="btn btn-outline-success btn-sm">Xác nhận hợp đồng</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">-</span>
                                     }
                                 </td>
                             </tr>
@@ -62,3 +115,44 @@
         }
     </div>
 </div>
+
+<div class="modal fade" id="cancelContractModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Xác nhận hủy hợp đồng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Bạn có chắc chắn muốn hủy hợp đồng <strong id="cancelContractNumber"></strong> không?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <form asp-controller="Contract" asp-action="Cancel" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="cancelContractId" name="contractId" value="0" />
+                    <input type="hidden" name="employeeId" value="@Model.EmployeeId" />
+                    <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openCancelModal(contractId, contractNumber) {
+        const idInput = document.getElementById("cancelContractId");
+        const numberEl = document.getElementById("cancelContractNumber");
+        const modalEl = document.getElementById("cancelContractModal");
+
+        if (!idInput || !numberEl || !modalEl || typeof bootstrap === "undefined") {
+            return;
+        }
+
+        idInput.value = contractId;
+        numberEl.textContent = contractNumber;
+
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+</script>
