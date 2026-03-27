@@ -366,5 +366,10 @@ namespace SmartHR_Payroll.Services
             return !string.IsNullOrWhiteSpace(address)
                 && Regex.IsMatch(address, @"^[\p{L}0-9,\s\-()./]+$", RegexOptions.CultureInvariant);
         }
+        public async Task<Employee?> GetByIdAsync(int id)
+        {
+            // Giả định trong EmployeeRepository của bạn có hàm GetByIdAsync
+            return await _employeeRepository.GetByIdAsync(id);
+        }
     }
 }

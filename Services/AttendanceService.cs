@@ -20,9 +20,9 @@ namespace SmartHR_Payroll.Services
 
         }
 
-        public async Task<List<Attendance>> GetMyAttendanceHistoryAsync(int employeeId)
+        public async Task<List<Attendance>> GetMyAttendanceHistoryAsync(int employeeId, DateOnly? fromDate, DateOnly? toDate, string? status)
         {
-            return await _attendanceRepository.GetMyHistoryAsync(employeeId);
+            return await _attendanceRepository.GetMyAttendanceHistoryAsync(employeeId, fromDate, toDate, status);
         }
 
         public async Task<(int SuccessCount, int ErrorCount, List<string> ErrorMessages)> ImportExcelAsync(IFormFile file)
@@ -119,6 +119,16 @@ namespace SmartHR_Payroll.Services
             }
 
             return (successCount, errorCount, errorMessages);
+        }
+
+        public async Task<List<Department>> GetAllDepartmentsAsync()
+        {
+            return await _attendanceRepository.GetAllDepartmentsAsync();
+        }
+
+        public async Task<List<Attendance>> GetAllAttendancesAsync(string? search, DateOnly? fromDate, DateOnly? toDate, string? status, int? departmentId)
+        {
+            return await _attendanceRepository.GetAllAttendancesAsync(search, fromDate, toDate, status, departmentId);
         }
 
     }

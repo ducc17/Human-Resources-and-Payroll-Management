@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SmartHR_Payroll.Services;
 using SmartHR_Payroll.Services.IServices;
 using System.Security.Claims;
 
@@ -7,17 +8,39 @@ namespace SmartHR_Payroll.Controllers
     public class AttendanceController : Controller
     {
         private readonly IAttendanceService _attendanceService;
-
-        public AttendanceController(IAttendanceService attendanceService)
+        private readonly IEmployeeService _employeeService;
+        public AttendanceController(IAttendanceService attendanceService, IEmployeeService employeeService)
         {
             _attendanceService = attendanceService;
+            _employeeService = employeeService;
         }
 
         // Trang chủ của Attendance (Khắc phục lỗi 404 khi vào /Attendance)
-        public IActionResult Index()
+        [HttpGet]
+        // Thêm tham số int? departmentId vào Action
+        public async Task<IActionResult> Index(string? search, string? fromDate, string? toDate, string? status, int? departmentId)
         {
-            return View();
-            // Lưu ý: Nhớ giữ lại file Views/Attendance/Index.cshtml của bạn nhé
+            DateOnly? from = null;
+            DateOnly? to = null;
+
+            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
+            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+
+            // Truyền tham số departmentId xuống Service
+            var allAttendances = await _attendanceService.GetAllAttendancesAsync(search, from, to, status, departmentId);
+
+            // Lấy danh sách các phòng ban từ DB
+            var departments = await _attendanceService.GetAllDepartmentsAsync();
+
+            // Lưu lại trạng thái để đẩy lên giao diện
+            ViewBag.Search = search;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.Status = status;
+            ViewBag.DepartmentId = departmentId;
+            ViewBag.Departments = departments; // Truyền List Phòng ban sang View
+
+            return View(allAttendances);
         }
 
         // Trang hiển thị Form Import
@@ -51,25 +74,36 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MyHistory()
+        public async Task<IActionResult> MyHistory(string? fromDate, string? toDate, string? status)
         {
-            // 1. Rút "EmployeeId" từ trong vé đăng nhập (Claims) ra
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Auth");
 
-            if (string.IsNullOrEmpty(userIdClaim))
+            int employeeId = int.Parse(userIdStr);
+
+            // Xử lý ép kiểu Ngày tháng
+            DateOnly? from = null;
+            DateOnly? to = null;
+            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
+            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+
+            // Truyền tham số xuống Service
+            var history = await _attendanceService.GetMyAttendanceHistoryAsync(employeeId, from, to, status);
+
+            var emp = await _employeeService.GetByIdAsync(employeeId);
+            if (emp != null)
             {
-                // Nếu chưa đăng nhập hoặc mất Session -> Đuổi về trang Login
-                return RedirectToAction("Login", "Auth");
+                ViewBag.FullName = emp.FirstName + " " + emp.LastName;
+                ViewBag.PositionName = emp.Position?.Name ?? "Nhân viên";
+                ViewBag.DepartmentName = emp.Department?.Name ?? "Chưa phân phòng";
             }
 
-            // 2. Chuyển ID từ chuỗi (string) sang số (int)
-            int employeeId = int.Parse(userIdClaim);
+            // Lưu lại trạng thái lọc để form không bị mất dữ liệu khi load lại trang
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.Status = status;
 
-            // 3. Gọi Service truyền đúng số ID đó vào
-            var model = await _attendanceService.GetMyAttendanceHistoryAsync(employeeId);
-
-            // 4. Trả dữ liệu ra View
-            return View(model);
+            return View(history);
         }
     }
 }

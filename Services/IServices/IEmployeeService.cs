@@ -1,4 +1,5 @@
-﻿using SmartHR_Payroll.ViewModels.Profile;
+﻿using SmartHR_Payroll.Models;
+using SmartHR_Payroll.ViewModels.Profile;
 using SmartHR_Payroll.Models;
 using SmartHR_Payroll.ViewModels.Employee;
 
@@ -15,5 +16,6 @@ namespace SmartHR_Payroll.Services.IServices
         Task<(bool Success, string Message)> BanEmployeeAsync(int employeeId, string actor);
         Task<(bool Success, string Message)> UnbanEmployeeAsync(int employeeId, string actor);
         Task<EmployeeContractsViewModel?> GetEmployeeContractsAsync(int employeeId);
+        Task<Employee?> GetByIdAsync(int id);
     }
 }
