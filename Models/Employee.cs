@@ -22,7 +22,7 @@ namespace SmartHR_Payroll.Models
         public string BankAccountNumber { get; set; }
         public int DependentCount { get; set; } = 0;
         public DateOnly HireDate { get; set; }
-        public Status.EmployeeStatus Status { get; set; } = Models.Status.EmployeeStatus.Active;
+        public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
         public int JobId { get; set; }
         public virtual Job Job { get; set; }
         public int RoleId { get; set; }
