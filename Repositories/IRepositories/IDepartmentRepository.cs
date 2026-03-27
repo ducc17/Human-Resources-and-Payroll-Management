@@ -10,6 +10,7 @@ namespace SmartHR_Payroll.Repositories.IRepositories
         Task<Department?> GetByIdAsync(int id);
         Task<List<Employee>> GetEmployeesForDropdownAsync(int? currentManagerId = null); Task CreateAsync(Department department);
         Task UpdateAsync(Department department);
+        Task<bool> CheckManagerConflictAsync(int managerId, int currentDepartmentId);
         Task DeactivateAsync(int id); // Hàm Soft Delete
     }
 }

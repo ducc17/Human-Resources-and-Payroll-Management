@@ -65,6 +65,10 @@ namespace SmartHR_Payroll.Services
 
             await _departmentRepository.UpdateAsync(department);
         }
+        public async Task<bool> CheckManagerConflictAsync(int managerId, int currentDepartmentId)
+        {
+            return await _departmentRepository.CheckManagerConflictAsync(managerId, currentDepartmentId);
+        }
 
         public async Task DeactivateAsync(int id) => await _departmentRepository.DeactivateAsync(id);
     }
