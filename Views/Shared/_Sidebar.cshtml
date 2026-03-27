@@ -1,0 +1,82 @@
+﻿@using System.Security.Claims
+
+<div class="sidebar bg-white border-end shadow-sm" id="sidebarMenu">
+    <div class="d-flex flex-column p-3 h-100">
+        <ul class="nav nav-pills flex-column mb-auto gap-1" style="font-size: 15px;">
+
+            <!-- CHỨC NĂNG CHUNG CHO MỌI NGƯỜI -->
+            <li class="nav-item">
+                <a asp-controller="Home" asp-action="Dashboard" class="nav-link text-dark sidebar-link">
+                    <i class="fa-solid fa-chart-pie me-2 text-primary"></i> Dashboard
+                </a>
+            </li>
+
+            <!-- MENU DÀNH RIÊNG CHO ADMIN & HR -->
+            @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+            {
+                <li class="nav-item mt-3 mb-1">
+                    <small class="text-muted text-uppercase fw-bold px-2" style="font-size: 11px;">Quản lý nhân sự</small>
+                </li>
+                <li>
+                    <a asp-controller="Employee" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-users me-2 text-secondary"></i> Danh sách nhân viên
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Contract" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-signature me-2 text-secondary"></i> Hợp đồng lao động
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Department" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-sitemap me-2 text-secondary"></i> Phòng ban & Vị trí
+                    </a>
+                </li>
+            }
+
+            <!-- MENU DÀNH RIÊNG CHO MANAGER (QUẢN LÝ PHÒNG) -->
+            @if (User.IsInRole("Manager"))
+            {
+                <li class="nav-item mt-3 mb-1">
+                    <small class="text-muted text-uppercase fw-bold px-2" style="font-size: 11px;">Quản lý đội nhóm</small>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-people-group me-2 text-secondary"></i> Nhân sự phòng ban
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-clipboard-check me-2 text-secondary"></i> Duyệt đơn từ
+                        <span class="badge bg-danger rounded-pill float-end">3</span>
+                    </a>
+                </li>
+            }
+
+            <!-- MENU TỰ PHỤC VỤ (ESS) - AI CŨNG CÓ -->
+            <li class="nav-item mt-3 mb-1">
+                <small class="text-muted text-uppercase fw-bold px-2" style="font-size: 11px;">Cá nhân</small>
+            </li>
+            <li>
+                <a asp-controller="Profile" asp-action="Index" class="nav-link text-dark sidebar-link">
+                    <i class="fa-regular fa-id-badge me-2 text-secondary"></i> Hồ sơ của tôi
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-dark sidebar-link">
+                    <i class="fa-regular fa-calendar-days me-2 text-secondary"></i> Chấm công & Xin phép
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-dark sidebar-link">
+                    <i class="fa-solid fa-money-check-dollar me-2 text-secondary"></i> Phiếu lương (Payslip)
+                </a>
+            </li>
+        </ul>
+
+        <hr>
+        <div class="px-2 text-muted" style="font-size: 12px;">
+            Hệ thống SmartHR v1.0
+        </div>
+    </div>
+</div>

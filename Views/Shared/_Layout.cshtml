@@ -11,98 +11,131 @@
         body {
             background-color: #f4f6f9;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Ngăn scroll toàn trang, chỉ scroll vùng content */
         }
 
-        .navbar {
-            padding: 15px 0;
+        /* Cấu trúc Header */
+        .navbar-top {
+            height: 60px;
+            z-index: 1030;
+        }
+
+        /* Cấu trúc phần thân (Dưới Header) */
+        .wrapper {
+            display: flex;
+            height: calc(100vh - 60px); /* 100% chiều cao màn hình trừ đi header */
+            width: 100%;
+        }
+
+        /* Cấu trúc Sidebar */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            height: 100%;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        .sidebar-link {
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 500;
+        }
+
+            .sidebar-link:hover {
+                background-color: #e9ecef;
+                color: #0d6efd !important;
+            }
+
+        /* Cấu trúc vùng Nội dung chính */
+        .main-content {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto; /* Chỉ cho scroll ở đây */
+            background-color: #f4f6f9;
+        }
+
+        /* Responsive cho Mobile  */
+        @@media (max-width: 992px) {
+            .sidebar
+
+        {
+            display: none; /* Tạm ẩn Sidebar trên mobile */
+        }
+
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                <i class="fa-solid fa-layer-group me-2"></i>SmartHR
+    <!-- 1. NAVBAR TRÊN CÙNG -->
+    <nav class="navbar navbar-expand navbar-dark bg-primary shadow-sm navbar-top">
+        <div class="container-fluid px-4">
+            <!-- Brand -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" asp-controller="Home" asp-action="Index" style="width: 235px;">
+                <i class="fa-solid fa-layer-group me-2 fs-4"></i>SmartHR
             </a>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <!-- Chỉ hiện menu nếu đã đăng nhập -->
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link fw-semibold" asp-controller="Home" asp-action="Dashboard">Dashboard</a>
-                        </li>
+            <!-- Nút Toggle Sidebar (Cho mobile sau này) -->
+            <button class="btn btn-primary d-lg-none me-auto" type="button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
 
-                        @if (User.IsInRole("Admin") || User.IsInRole("HR"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Employee" asp-action="Index">Nhân viên</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Employee" asp-action="Create">Thêm nhân viên</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Contract" asp-action="Create">Tạo hợp đồng</a>
-                            </li>
-                        }
-
-                        @if (User.IsInRole("Manager"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Employee" asp-action="Index">Nhân viên phòng</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Attendance" asp-action="Index">Chấm công</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="LeaveRequest" asp-action="Index">Nghỉ phép</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" asp-controller="Payslip" asp-action="Index">Bảng lương</a>
-                            </li>
-                        }
-                    }
-                </ul>
-
-                <!-- GÓC PHẢI MÀN HÌNH -->
-                <div class="d-flex align-items-center">
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        <a asp-controller="Profile" asp-action="Index" class="d-flex align-items-center text-decoration-none me-3" style="cursor: pointer;">
-                            <div class="text-end me-3 text-white">
-                                <div class="fw-bold text-truncate" style="font-size: 14px; max-width: 150px;">
-                                    @User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
-                                </div>
+            <!-- Góc phải (Avatar) -->
+            <div class="d-flex align-items-center ms-auto">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <div class="dropdown text-end">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="text-end me-2 d-none d-md-block">
+                                <div class="fw-bold" style="font-size: 14px;">@User.FindFirst(ClaimTypes.Name)?.Value</div>
+                                <div style="font-size: 11px; opacity: 0.8;">@User.FindFirst(ClaimTypes.Role)?.Value</div>
                             </div>
-                            <img src="@User.FindFirst("Avatar")?.Value" alt="Avatar" class="rounded-circle shadow-sm" width="40" height="40" style="border: 2px solid white;" />
+                            <img src="@User.FindFirst("Avatar")?.Value" alt="Avatar" width="38" height="38" class="rounded-circle border border-2 border-white shadow-sm">
                         </a>
-
-                        <form asp-controller="Auth" asp-action="Logout" method="post">
-                            <button type="submit" class="btn btn-light btn-sm fw-bold text-danger rounded-pill px-3 shadow-sm">
-                                <i class="fa-solid fa-right-from-bracket me-1"></i> Thoát
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a asp-controller="Auth" asp-action="Login" class="btn btn-light btn-sm fw-bold text-primary rounded-pill px-4 shadow-sm">
-                            <i class="fa-regular fa-user me-1"></i> Đăng nhập
-                        </a>
-                    }
-                </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fa-regular fa-user me-2 text-muted"></i>Tài khoản</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item text-danger fw-bold">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a asp-controller="Auth" asp-action="Login" class="btn btn-light btn-sm fw-bold text-primary rounded-pill px-4 shadow-sm">
+                        <i class="fa-regular fa-user me-1"></i> Đăng nhập
+                    </a>
+                }
             </div>
         </div>
     </nav>
 
-    <!-- NỘI DUNG CÁC TRANG SẼ ĐƯỢC NHÉT VÀO ĐÂY -->
-    <div class="container mt-4 mb-5">
-        @RenderBody()
+    <!-- 2. PHẦN THÂN (WRAPPER) -->
+    <div class="wrapper">
+
+        <!-- Gọi Partial View Sidebar (Chỉ hiện khi đã đăng nhập) -->
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            <partial name="_Sidebar" />
+        }
+
+        <!-- 3. NỘI DUNG CHÍNH CHUYỂN ĐỘNG -->
+        <div class="main-content">
+            <div class="container-fluid p-0">
+                @RenderBody()
+            </div>
+        </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SCIPTS -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
