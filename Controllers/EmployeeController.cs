@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,HR,Manager")]
     public class EmployeeController : Controller
     {
         private readonly IEmployeeService _employeeService;

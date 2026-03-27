@@ -1,0 +1,173 @@
+﻿@model SmartHR_Payroll.ViewModels.Report.TeamReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo nhóm";
+}
+
+<h2 class="mb-4">Báo cáo nhóm</h2>
+
+<!-- FILTER -->
+<form method="get" class="row mb-4">
+    <div class="col-md-3">
+        <label>Từ ngày</label>
+        <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Đến ngày</label>
+        <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+    </div>
+    <div class="col-md-2 align-self-end">
+        <button class="btn btn-primary w-100">Lọc</button>
+    </div>
+</form>
+
+<!-- SUMMARY -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-primary">
+            <h6>Tổng NV</h6>
+            <h4 class="text-primary">@Model.TotalEmployees</h4>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-success">
+            <h6>Đang làm</h6>
+            <h4 class="text-success">@Model.ActiveEmployees</h4>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-warning">
+            <h6>Nghỉ phép</h6>
+            <h4 class="text-warning">@Model.OnLeaveEmployees</h4>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-dark">
+            <h6>Lương</h6>
+            <h5 class="text-dark">@Model.TotalSalary.ToString("N0")</h5>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-info">
+            <h6>Phụ cấp</h6>
+            <h5 class="text-info">@Model.TotalAllowance.ToString("N0")</h5>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card p-3 text-center border-danger">
+            <h6>Khấu trừ</h6>
+            <h5 class="text-danger">@Model.TotalDeduction.ToString("N0")</h5>
+        </div>
+    </div>
+</div>
+
+<!-- TABLE -->
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark text-center">
+        <tr>
+            <th></th>
+            <th>Nhân viên</th>
+            <th>Phòng ban</th>
+            <th>Giờ làm</th>
+            <th>Ngày làm</th>
+            <th>Đi trễ</th>
+            <th>Vắng</th>
+            <th>TB giờ</th>
+            <th>Lương</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model.Employees)
+        {
+            var rowId = "detail_" + emp.EmployeeId;
+
+            <tr>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            onclick="toggleDetail('@rowId')">
+                        +
+                    </button>
+                </td>
+
+                <td><strong>@emp.EmployeeName</strong></td>
+                <td>@emp.Department</td>
+                <td class="text-center">@emp.TotalHours</td>
+                <td class="text-center">@emp.WorkDays</td>
+
+                <td class="text-center">
+                    <span class="badge bg-warning text-dark px-3">
+                        @emp.LateCount
+                    </span>
+                </td>
+
+                <td class="text-center">
+                    <span class="badge bg-danger px-3">
+                        @emp.AbsentDays
+                    </span>
+                </td>
+
+                <td class="text-center">@emp.AvgHours</td>
+
+                <td class="text-end text-success fw-bold">
+                    @emp.NetSalary.ToString("N0")
+                </td>
+            </tr>
+
+            <!-- DETAIL -->
+            <tr id="@rowId" style="display:none;">
+                <td colspan="9">
+                    <table class="table table-sm table-striped text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Giờ làm</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in emp.DailyDetails)
+                            {
+                                <tr>
+                                    <td>@d.Date</td>
+                                    <td>@(d.CheckIn?.ToString(@"hh\:mm") ?? "-")</td>
+                                    <td>@(d.CheckOut?.ToString(@"hh\:mm") ?? "-")</td>
+                                    <td>@d.Hours</td>
+                                    <td>
+                                        @if (d.IsAbsent)
+                                        {
+                                            <span class="badge bg-danger">Vắng</span>
+                                        }
+                                        else if (d.IsLate)
+                                        {
+                                            <span class="badge bg-warning text-dark">Trễ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Đúng giờ</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function toggleDetail(id) {
+            var row = document.getElementById(id);
+            row.style.display = (row.style.display === "none") ? "table-row" : "none";
+        }
+    </script>
+}
