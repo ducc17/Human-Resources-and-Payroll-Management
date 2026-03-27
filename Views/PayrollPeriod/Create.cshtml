@@ -1,0 +1,50 @@
+﻿@model SmartHR_Payroll.ViewModels.PayrollPeriod.PayrollPeriodViewModel
+@{
+    ViewData["Title"] = "Tạo kỳ lương mới";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark">Khởi tạo Kỳ lương mới</h3>
+    <a asp-controller="PayrollPeriod" asp-action="Index" class="btn btn-outline-secondary fw-bold shadow-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4" style="max-width: 600px;">
+    <div class="card-body p-4">
+        <form asp-controller="PayrollPeriod" asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-bold">Tên kỳ lương <span class="text-danger">*</span></label>
+                <input asp-for="Name" class="form-control" placeholder="VD: Lương Tháng 05/2026" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label asp-for="StartDate" class="form-label fw-bold">Từ ngày <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="EndDate" class="form-label fw-bold">Đến ngày <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" />
+                    <span asp-validation-for="EndDate" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                    <i class="fa-solid fa-floppy-disk me-2"></i> Lưu dữ liệu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

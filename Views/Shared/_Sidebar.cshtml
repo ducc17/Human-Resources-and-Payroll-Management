@@ -11,8 +11,45 @@
                 </a>
             </li>
 
-            <!-- MENU DÀNH RIÊNG CHO ADMIN & HR -->
-            @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+            <!-- MENU DÀNH RIÊNG CHO ADMIN -->
+            @if (User.IsInRole("Admin"))
+            {
+                <li class="nav-item mt-3 mb-1">
+                    <small class="text-muted text-uppercase fw-bold px-2" style="font-size: 11px;">Quản lý nhân sự</small>
+                </li>
+                <li>
+                    <a asp-controller="Employee" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-users me-2 text-secondary"></i> Danh sách nhân viên
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Contract" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-signature me-2 text-secondary"></i> Hợp đồng lao động
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Department" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-sitemap me-2 text-secondary"></i> Phòng ban & Vị trí
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Insurance" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-shield-heart me-2 text-secondary"></i> Cấu hình Bảo hiểm
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="TaxBracket" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i> Biểu thuế TNCN
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="PayrollPeriod" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-money-check-dollar me-2 text-secondary"></i> Tính & Chốt lương
+                    </a>
+                </li>
+            }
+            <!-- MENU DÀNH RIÊNG CHO HR -->
+            @if (User.IsInRole("HR"))
             {
                 <li class="nav-item mt-3 mb-1">
                     <small class="text-muted text-uppercase fw-bold px-2" style="font-size: 11px;">Quản lý nhân sự</small>
@@ -51,6 +88,31 @@
                         <span class="badge bg-danger rounded-pill float-end">3</span>
                     </a>
                 </li>
+                <li>
+                    <a asp-controller="Insurance" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-shield-heart me-2 text-secondary"></i> Cấu hình Bảo hiểm
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="TaxBracket" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i> Biểu thuế TNCN
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Insurance" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-shield-heart me-2 text-secondary"></i> Cấu hình Bảo hiểm
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="TaxBracket" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i> Biểu thuế TNCN
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="PayrollPeriod" asp-action="Index" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-money-check-dollar me-2 text-secondary"></i> Tính & Chốt lương
+                    </a>
+                </li>
             }
 
             <!-- MENU TỰ PHỤC VỤ (ESS) - AI CŨNG CÓ -->
@@ -68,7 +130,7 @@
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link text-dark sidebar-link">
+                <a asp-controller="Payslip" asp-action="MyPayslips" class="nav-link text-dark sidebar-link">
                     <i class="fa-solid fa-money-check-dollar me-2 text-secondary"></i> Phiếu lương (Payslip)
                 </a>
             </li>

@@ -1,0 +1,72 @@
+﻿@model SmartHR_Payroll.ViewModels.Insurance.InsuranceViewModel
+@{
+    ViewData["Title"] = "Cập nhật Bảo hiểm";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark">Cập nhật Cấu hình Bảo hiểm</h3>
+    <a asp-action="Index" class="btn btn-outline-secondary fw-bold shadow-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4" style="max-width: 800px;">
+    <div class="card-body p-4">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="InsuranceId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold"></div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="Code" class="form-label fw-bold">Mã Bảo hiểm <span class="text-danger">*</span></label>
+                    <input asp-for="Code" class="form-control bg-light" readonly />
+                    <span asp-validation-for="Code" class="text-danger small"></span>
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Name" class="form-label fw-bold">Tên Bảo hiểm <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="EmployeeRate" class="form-label fw-bold">Tỷ lệ Nhân viên đóng (%) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="EmployeeRate" type="number" step="0.01" class="form-control" />
+                        <span class="input-group-text bg-light">%</span>
+                    </div>
+                    <span asp-validation-for="EmployeeRate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CompanyRate" class="form-label fw-bold">Tỷ lệ Công ty đóng (%) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="CompanyRate" type="number" step="0.01" class="form-control" />
+                        <span class="input-group-text bg-light">%</span>
+                    </div>
+                    <span asp-validation-for="CompanyRate" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="MaxSalaryLimit" class="form-label fw-bold">Mức lương trần đóng BH (VNĐ)</label>
+                    <div class="input-group">
+                        <input asp-for="MaxSalaryLimit" type="number" class="form-control" />
+                        <span class="input-group-text bg-light">VNĐ</span>
+                    </div>
+                    <span asp-validation-for="MaxSalaryLimit" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                    <i class="fa-solid fa-floppy-disk me-2"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

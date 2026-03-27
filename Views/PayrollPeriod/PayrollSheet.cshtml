@@ -1,0 +1,302 @@
+﻿@model SmartHR_Payroll.ViewModels.PayrollPeriod.PayrollSheetViewModel
+@using SmartHR_Payroll.Models
+@{
+    ViewData["Title"] = "Bảng Lương Tổng Hợp";
+}
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">@Model.Period.Name</h3>
+        <span class="text-muted"><i class="fa-regular fa-calendar me-1"></i> @Model.Period.StartDate.ToString("dd/MM/yyyy") đến @Model.Period.EndDate.ToString("dd/MM/yyyy")</span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-controller="PayrollPeriod" asp-action="Index" class="btn btn-outline-secondary fw-bold shadow-sm">Quay lại</a>
+
+        <!-- Nút Chạy Lương -->
+        @if (Model.Period.Status != Status.PayrollStatus.Approved)
+        {
+            <form asp-controller="PayrollPeriod" asp-action="Process" asp-route-id="@Model.Period.PayrollPeriodId" method="post" onsubmit="return confirm('Hệ thống sẽ tính toán lại toàn bộ lương. Bạn có chắc chắn?');">
+                <button type="submit" class="btn btn-warning fw-bold shadow-sm">
+                    <i class="fa-solid fa-calculator me-1"></i>
+                    @(Model.Period.Status == Status.PayrollStatus.Draft ? "Chạy dữ liệu lương" : "Tính toán lại")
+                </button>
+            </form>
+        }
+
+        <!-- Nút Duyệt Lương -->
+        @if (Model.Period.Status == Status.PayrollStatus.Processing)
+        {
+            <form asp-controller="PayrollPeriod" asp-action="Approve" asp-route-id="@Model.Period.PayrollPeriodId" method="post" onsubmit="return confirm('Sau khi duyệt sẽ không thể thay đổi dữ liệu. Bạn có chắc chắn?');">
+                <button type="submit" class="btn btn-success fw-bold shadow-sm">
+                    <i class="fa-solid fa-check-double me-1"></i> Duyệt kỳ lương
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- THÔNG BÁO -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm">
+        <i class="fa-solid fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- TRẠNG THÁI -->
+<div class="mb-3">
+    Trạng thái hiện tại:
+    @if (Model.Period.Status == Status.PayrollStatus.Draft)
+    {
+        <span class="badge bg-secondary fs-6">Bản nháp (Chưa có dữ liệu)</span>
+    }
+    else if (Model.Period.Status == Status.PayrollStatus.Processing)
+    {
+        <span class="badge bg-warning text-dark fs-6">Chờ duyệt</span>
+    }
+    else
+    {
+        <span class="badge bg-success fs-6"><i class="fa-solid fa-lock me-1"></i> Đã duyệt chính thức</span>
+    }
+</div>
+
+<!-- ============================================== -->
+<!-- KHỐI IF - BẢNG LƯƠNG HOẶC THÔNG BÁO TRỐNG -->
+<!-- ============================================== -->
+@if (Model.Payslips.Any())
+{
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle mb-0" style="font-size: 14px; white-space: nowrap;">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th class="ps-3 text-start">Mã NV</th>
+                        <th class="text-start">Họ và Tên</th>
+                        <th class="text-start">Phòng ban</th>
+                        <th>Ngày công</th>
+                        <th class="text-end">Lương cơ bản</th>
+                        <th class="text-end">Phụ cấp</th>
+                        <th class="text-end">Khấu trừ</th>
+                        <th class="text-end">Trừ BHXH</th>
+                        <th class="text-end">Thuế TNCN</th>
+                        <th class="text-end bg-primary bg-opacity-10 pe-3">THỰC LÃNH</th>
+                        <th class="text-center">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Payslips)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold text-muted">@p.EmployeeCode</td>
+                            <td class="fw-bold">@p.FullName</td>
+                            <td>@p.DepartmentName</td>
+                            <td class="text-center fw-semibold">@p.WorkingDays.ToString("0.0")</td>
+                            <td class="text-end">@p.BaseSalary.ToString("N0")</td>
+                            <td class="text-end text-success">+@p.TotalAllowances.ToString("N0")</td>
+                            <td class="text-end text-danger">-@p.OtherDeductions.ToString("N0")</td>
+                            <td class="text-end text-danger">-@p.SocialInsuranceAmount.ToString("N0")</td>
+                            <td class="text-end text-danger">-@p.TaxAmount.ToString("N0")</td>
+                            <td class="text-end fw-bold text-primary bg-primary bg-opacity-10 fs-6 pe-3">@p.NetSalary.ToString("N0")</td>
+                            <td class="text-center">
+                                <!-- NÚT CON MẮT MỞ MODAL -->
+                                <button type="button" class="btn btn-sm btn-info text-white rounded-circle"
+                                        data-bs-toggle="modal" data-bs-target="#payslipDetailModal"
+                                        data-empcode="@p.EmployeeCode"
+                                        data-empname="@p.FullName"
+                                        data-dept="@p.DepartmentName"
+                                        data-workdays="@p.WorkingDays.ToString("0.0")"
+                                        data-basesalary="@p.BaseSalary.ToString("N0")"
+                                        data-gross="@((p.BaseSalary + p.TotalAllowances).ToString("N0"))"
+                                        data-social="@p.SocialInsuranceAmount.ToString("N0")"
+                                        data-tax="@p.TaxAmount.ToString("N0")"
+                                        data-totaldeduction="@p.TotalDeductions.ToString("N0")"
+                                        data-net="@p.NetSalary.ToString("N0")"
+                                        data-row-id="@p.EmployeeId">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <!-- VÙNG CHỨA HTML ẨN: DANH SÁCH PHỤ CẤP CHI TIẾT -->
+                                <div id="hidden-allowances-@p.EmployeeId" class="d-none">
+                                    @foreach (var a in p.AllowanceDetails)
+                                    {
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small"><i class="fa-solid fa-caret-right me-1 text-success"></i> @a.Name</span>
+                                            <span class="fw-semibold text-success small">+ @a.Amount.ToString("N0") đ</span>
+                                        </div>
+                                    }
+                                    @if (!p.AllowanceDetails.Any())
+                                    {
+                                        <div class="text-muted small fst-italic">Không có phụ cấp</div>
+                                    }
+                                </div>
+
+                                <!-- VÙNG CHỨA HTML ẨN: DANH SÁCH KHẤU TRỪ CHI TIẾT -->
+                                <div id="hidden-deductions-@p.EmployeeId" class="d-none">
+                                    @foreach (var d in p.DeductionDetails)
+                                    {
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small"><i class="fa-solid fa-caret-right me-1 text-danger"></i> @d.Name</span>
+                                            <span class="fw-semibold text-danger small">- @d.Amount.ToString("N0") đ</span>
+                                        </div>
+                                    }
+                                    @if (!p.DeductionDetails.Any())
+                                    {
+                                        <div class="text-muted small fst-italic">Không có khấu trừ</div>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="4" class="text-end">TỔNG CỘNG:</td>
+                        <td class="text-end">@Model.Payslips.Sum(x => x.BaseSalary).ToString("N0")</td>
+                        <td class="text-end text-success">+@Model.Payslips.Sum(x => x.TotalAllowances).ToString("N0")</td>
+                        <td class="text-end text-danger">-@Model.Payslips.Sum(x => x.OtherDeductions).ToString("N0")</td>
+                        <td class="text-end text-danger">-@Model.Payslips.Sum(x => x.SocialInsuranceAmount).ToString("N0")</td>
+                        <td class="text-end text-danger">-@Model.Payslips.Sum(x => x.TaxAmount).ToString("N0")</td>
+                        <td class="text-end text-primary fs-5 pe-3">@Model.Payslips.Sum(x => x.NetSalary).ToString("N0")</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center p-5 bg-white rounded-4 shadow-sm mt-3">
+        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486803.png" alt="No Data" width="100" class="mb-3 opacity-50" />
+        <h5 class="text-muted">Chưa có dữ liệu bảng lương</h5>
+        <p class="text-muted small">Hãy nhấn nút "Chạy dữ liệu lương" ở góc trên để hệ thống bắt đầu tính toán.</p>
+    </div>
+}
+<!-- ĐÓNG KHỐI IF - ELSE Ở ĐÂY -->
+<!-- ============================================== -->
+<!-- MODAL CHI TIẾT LƯƠNG NHÂN VIÊN (ĐẶT BÊN NGOÀI) -->
+<!-- ============================================== -->
+<div class="modal fade" id="payslipDetailModal" tabindex="-1" aria-labelledby="payslipDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <!-- Div này lúc nãy bạn bị thiếu -->
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold" id="payslipDetailModalLabel">
+                    <i class="fa-solid fa-file-invoice-dollar me-2"></i> Chi tiết lương nhân viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <!-- Thông tin NV -->
+                <div class="row mb-3 pb-3 border-bottom">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small fw-bold text-uppercase">Nhân viên</p>
+                        <h5 class="fw-bold text-dark mb-0"><span id="mdlEmpName"></span> <span class="badge bg-secondary ms-1" id="mdlEmpCode"></span></h5>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-1 text-muted small fw-bold text-uppercase">Phòng ban</p>
+                        <p class="fw-semibold text-dark mb-0" id="mdlDept"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-1 text-muted small fw-bold text-uppercase">Công thực tế</p>
+                        <p class="fw-semibold text-dark mb-0" id="mdlWorkDays"></p>
+                    </div>
+                </div>
+
+                <!-- Bóc tách số liệu -->
+                <div class="row g-4 mt-1">
+                    <!-- Cột Thu nhập -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fa-solid fa-plus-circle me-2"></i>THU NHẬP (EARNINGS)</h6>
+                        <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                            <span class="text-dark fw-semibold">Lương tính theo ngày công</span>
+                            <span class="fw-bold text-dark" id="mdlBase"></span>
+                        </div>
+
+                        <!-- CHỖ NÀY SẼ NHÉT DANH SÁCH PHỤ CẤP VÀO BẰNG JS -->
+                        <div id="mdlAllowanceList" class="ps-2 border-start border-2 border-success mb-3"></div>
+
+                        <hr class="border-secondary border-opacity-25" />
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-dark">Tổng thu nhập (Gross)</span>
+                            <span class="fw-bold text-success fs-6" id="mdlGross"></span>
+                        </div>
+                    </div>
+
+                    <!-- Cột Khấu trừ -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-danger border-bottom pb-2 mb-3"><i class="fa-solid fa-minus-circle me-2"></i>KHẤU TRỪ (DEDUCTIONS)</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Bảo hiểm (BHXH, BHYT, BHTN)</span>
+                            <span class="fw-semibold text-danger" id="mdlSocial"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                            <span class="text-muted">Thuế TNCN</span>
+                            <span class="fw-semibold text-danger" id="mdlTax"></span>
+                        </div>
+
+                        <!-- CHỖ NÀY SẼ NHÉT DANH SÁCH KHẤU TRỪ VÀO BẰNG JS -->
+                        <div id="mdlDeductionList" class="ps-2 border-start border-2 border-danger mb-3"></div>
+
+                        <hr class="border-secondary border-opacity-25" />
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-dark">Tổng khấu trừ</span>
+                            <span class="fw-bold text-danger fs-6" id="mdlTotalDeduction"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lương Thực Lãnh -->
+                <div class="mt-4 p-3 bg-light rounded border border-primary border-opacity-25 d-flex justify-content-between align-items-center">
+                    <h5 class="text-muted fw-bold mb-0 text-uppercase">THỰC LÃNH (NET PAY)</h5>
+                    <h3 class="fw-bold text-primary mb-0" id="mdlNet"></h3>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light border-top-0 rounded-bottom-4">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Đóng lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var payslipModal = document.getElementById('payslipDetailModal')
+        payslipModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var empId = button.getAttribute('data-row-id');
+
+            // Gán các số liệu cơ bản
+            document.getElementById('mdlEmpCode').textContent = button.getAttribute('data-empcode');
+            document.getElementById('mdlEmpName').textContent = button.getAttribute('data-empname');
+            document.getElementById('mdlDept').textContent = button.getAttribute('data-dept');
+            document.getElementById('mdlWorkDays').textContent = button.getAttribute('data-workdays') + ' ngày';
+
+            document.getElementById('mdlBase').textContent = button.getAttribute('data-basesalary') + ' đ';
+            document.getElementById('mdlGross').textContent = button.getAttribute('data-gross') + ' đ';
+            document.getElementById('mdlSocial').textContent = '- ' + button.getAttribute('data-social') + ' đ';
+            document.getElementById('mdlTax').textContent = '- ' + button.getAttribute('data-tax') + ' đ';
+            document.getElementById('mdlTotalDeduction').textContent = button.getAttribute('data-totaldeduction') + ' đ';
+            document.getElementById('mdlNet').textContent = button.getAttribute('data-net') + ' VNĐ';
+
+            // GÁN DANH SÁCH CHI TIẾT TỪ HTML ẨN VÀO TRONG MODAL
+            var allowanceHtml = document.getElementById('hidden-allowances-' + empId).innerHTML;
+            document.getElementById('mdlAllowanceList').innerHTML = allowanceHtml;
+
+            var deductionHtml = document.getElementById('hidden-deductions-' + empId).innerHTML;
+            document.getElementById('mdlDeductionList').innerHTML = deductionHtml;
+        });
+    </script>
+}

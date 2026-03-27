@@ -9,13 +9,6 @@ using SmartHR_Payroll.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IAttendanceService, AttendanceService>();
-builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IContractService, ContractService>();
-builder.Services.AddScoped<IContractRepository, ContractRepository>();
-
 builder.Services.AddScoped<AttendanceService>();
 
 // Add services to the container.
@@ -49,6 +42,15 @@ builder.Services.AddAuthentication(options =>
 // Suport MVC pattern
 builder.Services.AddControllersWithViews();
 
+//  Employee
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
+// Contract
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
+
+// Attendance
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 
@@ -68,6 +70,21 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
+// Tax
+builder.Services.AddScoped<ITaxRepository, TaxRepository>();
+builder.Services.AddScoped<ITaxService, TaxService>();
+
+// Insurance
+builder.Services.AddScoped<IInsuranceRepository, InsuranceRepository>();
+builder.Services.AddScoped<IInsuranceService, InsuranceService>();
+
+// Payroll Period
+builder.Services.AddScoped<IPayrollPeriodRepository, PayrollPeriodRepository>();
+builder.Services.AddScoped<IPayrollPeriodService, PayrollPeriodService>();
+
+// Payslip
+builder.Services.AddScoped<IPayslipRepository, PayslipRepository>();
+builder.Services.AddScoped<IPayslipService, PayslipService>();
 
 var app = builder.Build();
 

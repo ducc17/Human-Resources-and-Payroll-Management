@@ -1,0 +1,53 @@
+﻿@model IEnumerable<SmartHR_Payroll.ViewModels.TaxBracket.TaxBracketViewModel>
+@{
+    ViewData["Title"] = "Biểu thuế TNCN";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark"><i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>Biểu thuế Lũy tiến</h3>
+    <a asp-action="Create" class="btn btn-success fw-bold shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> Thêm Bậc thuế
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <table class="table table-hover table-borderless align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Bậc</th>
+                    <th>Thu nhập tính thuế (VNĐ)</th>
+                    <th class="text-center">Thuế suất (%)</th>
+                    <th class="text-end pe-4">Mức trừ lùi (VNĐ)</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold">
+                            <span class="badge bg-secondary rounded-circle p-2">@item.Level</span>
+                        </td>
+                        <td>
+                            Từ <b>@item.FromIncome.ToString("N0")</b>
+                            @if (item.ToIncome.HasValue)
+                            {
+                                <span> đến <b>@item.ToIncome.Value.ToString("N0")</b></span>
+                            }
+                            else
+                            {
+                                <span> trở lên</span>
+                            }
+                        </td>
+                        <td class="text-center text-danger fw-bold fs-5">@item.TaxRate.ToString("0") %</td>
+                        <td class="text-end pe-4 fw-semibold text-muted">@item.QuickSubtraction.ToString("N0")</td>
+                        <td class="text-end pe-4">
+                            <a asp-action="Edit" asp-route-id="@item.TaxBracketId" class="btn btn-sm btn-outline-primary rounded-circle"><i class="fa-solid fa-pen"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

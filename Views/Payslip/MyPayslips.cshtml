@@ -1,0 +1,61 @@
+﻿@model IEnumerable<SmartHR_Payroll.ViewModels.Payslip.MyPayslipListViewModel>
+@{
+    ViewData["Title"] = "Phiếu lương của tôi";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark"><i class="fa-solid fa-money-check-dollar text-primary me-2"></i>Phiếu lương của tôi</h3>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger shadow-sm">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <table class="table table-hover table-borderless align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Kỳ lương</th>
+                    <th>Thời gian</th>
+                    <th class="text-end">Thực lãnh (VNĐ)</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">Bạn chưa có phiếu lương nào được chốt.</td>
+                    </tr>
+                }
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">@item.PeriodName</td>
+                        <td class="text-muted">@item.StartDate.ToString("dd/MM/yyyy") - @item.EndDate.ToString("dd/MM/yyyy")</td>
+                        <td class="text-end fw-bold text-primary fs-5">@item.NetSalary.ToString("N0")</td>
+                        <td class="text-center">
+                            @if (item.PaymentDate.HasValue)
+                            {
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fa-solid fa-check me-1"></i> Đã thanh toán</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i> Chờ thanh toán</span>
+                            }
+                        </td>
+                        <td class="text-center pe-4">
+                            <a asp-controller="Payslip" asp-action="Details" asp-route-id="@item.PayslipId" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm">
+                                <i class="fa-solid fa-eye me-1"></i> Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
