@@ -72,6 +72,10 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 
+// Report
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
