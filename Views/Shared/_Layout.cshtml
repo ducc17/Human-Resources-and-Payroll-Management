@@ -33,6 +33,19 @@
                         <li class="nav-item">
                             <a class="nav-link fw-semibold" asp-controller="Home" asp-action="Dashboard">Dashboard</a>
                         </li>
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold" asp-controller="Employee" asp-action="Index">Nhân viên</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold" asp-controller="Employee" asp-action="Create">Thêm nhân viên</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold" asp-controller="Contract" asp-action="Create">Tạo hợp đồng</a>
+                            </li>
+                        }
                     }
                 </ul>
 

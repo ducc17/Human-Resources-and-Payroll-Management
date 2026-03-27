@@ -9,6 +9,12 @@ using SmartHR_Payroll.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
 
 builder.Services.AddScoped<AttendanceService>();
 
