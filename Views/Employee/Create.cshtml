@@ -1,0 +1,209 @@
+@model SmartHR_Payroll.Models.Employee
+@using SmartHR_Payroll.Models
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+}
+
+<style>
+    .date-picker-wrap {
+        position: relative;
+    }
+
+    .date-picker-wrap .calendar-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .date-picker-wrap .form-control {
+        padding-right: 2.2rem;
+        cursor: pointer;
+        background-color: #fff;
+    }
+</style>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-user-plus text-primary me-2"></i>Thêm mới nhân viên</h4>
+        <p class="text-muted mb-3">Nhập thông tin nhân viên mới và lưu vào hệ thống.</p>
+    </div>
+    <div class="card-body pt-2">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="DateOfBirth" class="form-label"></label>
+                    <div class="date-picker-wrap">
+                        <input asp-for="DateOfBirth" type="text" class="form-control date-picker-input" autocomplete="off" placeholder="Chọn ngày sinh" />
+                        <i class="fa-regular fa-calendar calendar-icon"></i>
+                    </div>
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Gender" class="form-label"></label>
+                    <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Status.Gender>()"></select>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="HireDate" class="form-label"></label>
+                    <div class="date-picker-wrap">
+                        <input asp-for="HireDate" type="text" class="form-control date-picker-input" autocomplete="off" placeholder="Chọn ngày thuê" />
+                        <i class="fa-regular fa-calendar calendar-icon"></i>
+                    </div>
+                    <span asp-validation-for="HireDate" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PhoneNumber" class="form-label"></label>
+                    <input asp-for="PhoneNumber" type="tel" class="form-control" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Address" class="form-label"></label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="BankAccountNumber" class="form-label"></label>
+                    <input asp-for="BankAccountNumber" class="form-control" />
+                    <span asp-validation-for="BankAccountNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BankName" class="form-label"></label>
+                    <input asp-for="BankName" class="form-control" />
+                    <span asp-validation-for="BankName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="DepartmentId" class="form-label">Phòng ban</label>
+                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                        <option value="">-- Chọn phòng ban --</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PositionId" class="form-label">Chức vụ</label>
+                    <select asp-for="PositionId" class="form-select" asp-items="ViewBag.Positions">
+                        <option value="">-- Chọn chức vụ --</option>
+                    </select>
+                    <span asp-validation-for="PositionId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="RoleId" class="form-label">Vai trò</label>
+                    <select asp-for="RoleId" class="form-select" asp-items="ViewBag.Roles">
+                        <option value="">-- Chọn vai trò --</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu nhân viên
+                </button>
+                <a asp-controller="Home" asp-action="Dashboard" class="btn btn-outline-secondary">Quay lại dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+    <script>
+        const datePickerLocale = window.flatpickr?.l10ns?.vn || "default";
+
+        flatpickr("#DateOfBirth", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            locale: datePickerLocale,
+            monthSelectorType: "dropdown",
+            disableMobile: true,
+            maxDate: "today",
+            allowInput: false
+        });
+
+        flatpickr("#HireDate", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            locale: datePickerLocale,
+            monthSelectorType: "dropdown",
+            disableMobile: true,
+            maxDate: "today",
+            allowInput: false
+        });
+
+        const allPositions = @Html.Raw(JsonSerializer.Serialize(ViewBag.PositionOptions ?? new List<object>()));
+        const departmentSelect = document.getElementById("DepartmentId");
+        const positionSelect = document.getElementById("PositionId");
+
+        const renderPositionsByDepartment = () => {
+            if (!departmentSelect || !positionSelect) {
+                return;
+            }
+
+            const selectedDepartmentId = Number.parseInt(departmentSelect.value, 10);
+            const currentPositionId = positionSelect.value;
+
+            positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+
+            if (Number.isNaN(selectedDepartmentId)) {
+                positionSelect.disabled = true;
+                return;
+            }
+
+            const filtered = allPositions.filter(p => p.DepartmentId === selectedDepartmentId);
+
+            filtered.forEach(position => {
+                const option = document.createElement("option");
+                option.value = position.PositionId;
+                option.textContent = position.DisplayText;
+                positionSelect.appendChild(option);
+            });
+
+            const hasCurrent = filtered.some(p => String(p.PositionId) === currentPositionId);
+            positionSelect.value = hasCurrent ? currentPositionId : "";
+            positionSelect.disabled = filtered.length === 0;
+        };
+
+        if (departmentSelect && positionSelect) {
+            departmentSelect.addEventListener("change", renderPositionsByDepartment);
+            renderPositionsByDepartment();
+        }
+    </script>
+}

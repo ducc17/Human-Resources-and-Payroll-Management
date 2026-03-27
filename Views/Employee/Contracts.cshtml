@@ -1,0 +1,64 @@
+@model SmartHR_Payroll.ViewModels.Employee.EmployeeContractsViewModel
+@using SmartHR_Payroll.Models
+
+@{
+    ViewData["Title"] = "Hợp đồng nhân viên";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="fa-solid fa-file-contract text-primary me-2"></i>Danh sách hợp đồng</h4>
+            <p class="text-muted mb-3">Nhân viên: <strong>@Model.EmployeeCode - @Model.FullName</strong></p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card-body pt-2">
+        @if (!Model.Contracts.Any())
+        {
+            <div class="alert alert-info mb-0">Nhân viên này chưa có hợp đồng nào.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã hợp đồng</th>
+                            <th>Loại hợp đồng</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Lương cơ bản</th>
+                            <th>Trạng thái kích hoạt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contract in Model.Contracts)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@contract.ContractNumber</td>
+                                <td>@contract.Type</td>
+                                <td>@contract.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>@(contract.EndDate?.ToString("dd/MM/yyyy") ?? "Không thời hạn")</td>
+                                <td>@contract.BaseSalary.ToString("N0") đ</td>
+                                <td>
+                                    @if (contract.IsActive)
+                                    {
+                                        <span class="badge bg-success">Đã kích hoạt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Chưa kích hoạt</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

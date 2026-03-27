@@ -23,9 +23,97 @@ namespace SmartHR_Payroll.Repositories
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
         }
 
+        public async Task<Employee?> GetEmployeeByIdAsync(int employeeId)
+        {
+            return await _context.Employees
+                .IgnoreQueryFilters()
+                .Include(e => e.Department)
+                .Include(e => e.Position)
+                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+        }
+
+        public async Task<(List<Employee> Employees, int TotalCount)> GetEmployeesPagedAsync(int page, int pageSize)
+        {
+            var query = _context.Employees
+                .IgnoreQueryFilters()
+                .Include(e => e.Department)
+                .Include(e => e.Position)
+                .OrderByDescending(e => e.CreatedAt)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var employees = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (employees, totalCount);
+        }
+
+        public async Task<List<Contract>> GetContractsByEmployeeIdAsync(int employeeId)
+        {
+            return await _context.Contracts
+                .Where(c => c.EmployeeId == employeeId)
+                .OrderByDescending(c => c.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<bool> SoftDeleteEmployeeAsync(Employee employee)
+        {
+            _context.Employees.Update(employee);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task UpdateEmployeeAsync(Employee employee)
         {
             _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> EmployeeCodeExistsAsync(string employeeCode)
+        {
+            return await _context.Employees.AnyAsync(e => e.EmployeeCode == employeeCode);
+        }
+
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            return await _context.Employees.AnyAsync(e => e.Email == email);
+        }
+
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber)
+        {
+            return await _context.Employees.AnyAsync(e => e.PhoneNumber == phoneNumber);
+        }
+
+        public async Task<bool> BankAccountNumberExistsAsync(string bankAccountNumber)
+        {
+            return await _context.Employees.AnyAsync(e => e.BankAccountNumber == bankAccountNumber);
+        }
+
+        public async Task<List<Department>> GetDepartmentsAsync()
+        {
+            return await _context.Departments
+                .OrderBy(d => d.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Position>> GetPositionsAsync()
+        {
+            return await _context.Positions
+                .OrderBy(p => p.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Role>> GetRolesAsync()
+        {
+            return await _context.Role
+                .OrderBy(r => r.Name)
+                .ToListAsync();
+        }
+
+        public async Task AddEmployeeAsync(Employee employee)
+        {
+            await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
         }
     }
