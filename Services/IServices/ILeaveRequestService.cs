@@ -16,4 +16,6 @@ public interface ILeaveRequestService
     Task ApproveAsync(int id, ClaimsPrincipal user);
 
     Task RejectAsync(int id, ClaimsPrincipal user);
+
+    Task<int> CountPendingAsync(ClaimsPrincipal user);
 }

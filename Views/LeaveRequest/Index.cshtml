@@ -1,5 +1,192 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<SmartHR_Payroll.Models.LeaveRequest>
+
 @{
+    ViewData["Title"] = "Duyệt đơn nghỉ phép";
 }
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white">
+        <h4 class="fw-bold mb-1">Duyệt đơn nghỉ phép</h4>
+        <p class="text-muted mb-0">Xem và xử lý các đơn nghỉ của nhân viên</p>
+    </div>
+
+    <div class="card-body">
+
+        <!-- SEARCH + FILTER -->
+        <form method="get" class="row g-2 mb-3">
+
+            <div class="col-md-3">
+                <input type="text" name="search"
+                       value="@Context.Request.Query["search"]"
+                       class="form-control"
+                       placeholder="Tên / mã nhân viên..." />
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="fromDate"
+                       value="@Context.Request.Query["fromDate"]"
+                       class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="toDate"
+                       value="@Context.Request.Query["toDate"]"
+                       class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending" selected="@(Context.Request.Query["status"] == "Pending")">Chờ duyệt</option>
+                    <option value="Approved" selected="@(Context.Request.Query["status"] == "Approved")">Đã duyệt</option>
+                    <option value="Rejected" selected="@(Context.Request.Query["status"] == "Rejected")">Từ chối</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary w-100">Tìm</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
+
+        </form>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Loại nghỉ</th>
+                        <th>Từ ngày</th>
+                        <th>Đến ngày</th>
+                        <th>Số ngày</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th style="width:160px;">Hành động</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Không có dữ liệu
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @item.Employee?.EmployeeCode <br />
+                                    <strong>@item.Employee?.FirstName @item.Employee?.LastName</strong>
+                                </td>
+
+                                <td>@item.LeaveType?.Name</td>
+
+                                <td>@item.StartDate</td>
+                                <td>@item.EndDate</td>
+
+                                <td>@item.TotalDays</td>
+
+                                <td>@item.Reason</td>
+
+                                <td>
+                                    @if (item.Status.ToString() == "Pending")
+                                    {
+                                        <span class="badge bg-warning">Chờ duyệt</span>
+                                    }
+                                    else if (item.Status.ToString() == "Approved")
+                                    {
+                                        <span class="badge bg-success">Đã duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Từ chối</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.Status.ToString() == "Pending")
+                                    {
+                                        <button class="btn btn-sm btn-success"
+                                                onclick="openApproveModal(@item.LeaveRequestId)">
+                                            Duyệt
+                                        </button>
+
+                                        <button class="btn btn-sm btn-danger"
+                                                onclick="openRejectModal(@item.LeaveRequestId)">
+                                            Từ chối
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Đã xử lý</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+
+            </table>
+
+            <div class="modal fade" id="confirmModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Xác nhận</h5>
+                        </div>
+                        <div class="modal-body">
+                            <span id="confirmText" class="fw-bold"></span>
+                        </div>
+
+                        <div class="modal-footer">
+                            <form id="confirmForm" method="post">
+                                <input type="hidden" name="id" id="modalId" />
+                                <button type="submit" id="confirmBtn" class="btn">Đồng ý</button>
+                            </form>
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function openApproveModal(id) {
+        document.getElementById("confirmText").innerHTML =
+            'Bạn có chắc muốn <span class="text-success">DUYỆT</span> đơn này không?';
+
+        document.getElementById("confirmForm").action = "/LeaveRequest/Approve";
+        document.getElementById("modalId").value = id;
+
+        const btn = document.getElementById("confirmBtn");
+        btn.className = "btn btn-success";
+        btn.innerText = "Duyệt";
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
+
+    function openRejectModal(id) {
+        document.getElementById("confirmText").innerHTML =
+            'Bạn có chắc muốn <span class="text-danger">TỪ CHỐI</span> đơn này không?';
+
+        document.getElementById("confirmForm").action = "/LeaveRequest/Reject";
+        document.getElementById("modalId").value = id;
+
+        const btn = document.getElementById("confirmBtn");
+        btn.className = "btn btn-danger";
+        btn.innerText = "Từ chối";
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
+</script>
