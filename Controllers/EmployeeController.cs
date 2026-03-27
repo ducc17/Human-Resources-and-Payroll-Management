@@ -6,8 +6,10 @@ using SmartHR_Payroll.Services.IServices;
 using SmartHR_Payroll.ViewModels.Employee;
 using System.Security.Claims;
 
+
 namespace SmartHR_Payroll.Controllers
 {
+    [Authorize]
     public class EmployeeController : Controller
     {
         private readonly IEmployeeService _employeeService;
