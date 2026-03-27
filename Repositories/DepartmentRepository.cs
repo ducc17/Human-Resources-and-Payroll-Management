@@ -79,9 +79,31 @@ namespace SmartHR_Payroll.Repositories
 
         public async Task<List<Employee>> GetEmployeesForDropdownAsync(int? currentManagerId = null)
         {
+            // BƯỚC 1: Tìm danh sách các Manager "đang bận" 
+            // (Đang quản lý các phòng ban ĐANG HOẠT ĐỘNG và KHÁC với phòng ban hiện tại)
+            var busyManagerIds = await _context.Departments
+                .Where(d => !d.IsDeleted) // Chỉ xét những phòng ban chưa bị khóa
+                .Where(d => d.ManagerId != null) // Có người quản lý
+                .Where(d => d.ManagerId != currentManagerId) // Bỏ qua quản lý của phòng ban đang được Edit
+                .Select(d => d.ManagerId.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // BƯỚC 2: Lọc danh sách Nhân viên thỏa mãn TẤT CẢ điều kiện
             return await _context.Employees
-                .IgnoreQueryFilters()
-                .Where(e => !e.IsDeleted && (e.RoleId == 3 || e.EmployeeId == currentManagerId))
+                .Include(e => e.Role) // Kết nối với bảng Role
+                .Where(e => !e.IsDeleted) // Nhân viên chưa bị khóa/nghỉ việc
+                .Where(e =>
+                    (
+                        // Điều kiện A: Có chức vụ là Quản lý/Manager
+                        (e.Role != null && (e.Role.Name.Contains("Manage") || e.Role.Name.Contains("Quản lý")))
+
+                        // Điều kiện B: Hoặc chính là Manager hiện tại (giữ lại họ để hiển thị lúc Edit)
+                        || e.EmployeeId == currentManagerId
+                    )
+                )
+                // ĐIỀU KIỆN QUYẾT ĐỊNH: Không nằm trong danh sách các Manager đang bận
+                .Where(e => !busyManagerIds.Contains(e.EmployeeId))
                 .ToListAsync();
         }
         public async Task CreateAsync(Department department)
@@ -150,6 +172,15 @@ namespace SmartHR_Payroll.Repositories
                 _context.Departments.Update(dept);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<bool> CheckManagerConflictAsync(int managerId, int currentDepartmentId)
+        {
+            // Kiểm tra xem có phòng ban nào ĐANG HOẠT ĐỘNG, khác với phòng hiện tại, mà ông này làm Manager không?
+            return await _context.Departments
+                .AnyAsync(d => !d.IsDeleted &&
+                               d.ManagerId == managerId &&
+                               d.DepartmentId != currentDepartmentId);
         }
     }
 }
