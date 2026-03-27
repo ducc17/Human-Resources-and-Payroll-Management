@@ -13,18 +13,18 @@ namespace SmartHR_Payroll.Models
         public string LastName { get; set; }
         public string FullName => $"{FirstName} {LastName}";
         public DateOnly DateOfBirth { get; set; }
-        public Gender Gender { get; set; }
+        public Status.Gender Gender { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
+        public int? BankId { get; set; }
+        public virtual Bank Bank { get; set; }
         public string BankAccountNumber { get; set; }
-        public string BankName { get; set; }
+        public int DependentCount { get; set; } = 0;
         public DateOnly HireDate { get; set; }
-        public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
-        public int DepartmentId { get; set; }
-        public virtual Department Department { get; set; }
-        public int PositionId { get; set; }
-        public virtual Position Position { get; set; }
+        public Status.EmployeeStatus Status { get; set; } = Models.Status.EmployeeStatus.Active;
+        public int JobId { get; set; }
+        public virtual Job Job { get; set; }
         public int RoleId { get; set; }
         public virtual Role Role { get; set; }
         public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();

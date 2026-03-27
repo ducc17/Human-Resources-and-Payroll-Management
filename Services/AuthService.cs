@@ -18,9 +18,11 @@ namespace SmartHR_Payroll.Services
         public async Task<ClaimsPrincipal> ValidateGoogleUserAsync(string email, string avatarUrl)
         {
             var employee = await _context.Employees
-                .Include(e => e.Role)      
-                .Include(e => e.Position)  
-                .Include(e => e.Department) 
+                .Include(e => e.Role)
+                .Include(e => e.Job) 
+                    .ThenInclude(j => j.Department)
+                .Include(e => e.Job)
+                    .ThenInclude(j => j.Position)  
                 .FirstOrDefaultAsync(e => e.Email == email);
 
             if (employee == null || employee.Status != EmployeeStatus.Active)
@@ -34,14 +36,16 @@ namespace SmartHR_Payroll.Services
                 new Claim(ClaimTypes.Name, employee.FullName),
                 new Claim(ClaimTypes.Email, employee.Email),
                 new Claim(ClaimTypes.Role, employee.Role.Name ?? "Employee"),
-                new Claim("DepartmentCode", employee.Department.Code),
-                new Claim("PositionName", employee.Position.Name),
+                
+                new Claim("DepartmentCode", employee.Job?.Department?.Code ?? "N/A"),
+                new Claim("PositionName", employee.Job?.Position?.Name ?? "N/A"),
+
                 new Claim("Avatar", avatarUrl ?? "")
             };
 
             var identity = new ClaimsIdentity(claims, "ApplicationCookie");
 
-            return new ClaimsPrincipal(identity);   
+            return new ClaimsPrincipal(identity);
         }
     }
 }

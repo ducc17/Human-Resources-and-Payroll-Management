@@ -18,6 +18,7 @@ namespace SmartHR_Payroll.Data
 
         public DbSet<Department> Departments { get; set; }
         public DbSet<Position> Positions { get; set; }
+        public DbSet<Job> Jobs { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
@@ -30,6 +31,9 @@ namespace SmartHR_Payroll.Data
         public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
         public DbSet<Payslip> Payslips { get; set; }
         public DbSet<Role> Role { get; set; }
+        public DbSet<Bank> Banks { get; set; }
+        public DbSet<Insurance> Insurances { get; set; }
+        public DbSet<TaxBracket> TaxBrackets { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -44,46 +48,50 @@ namespace SmartHR_Payroll.Data
         {
             modelBuilder.Entity<Department>(entity =>
             {
-                entity.ToTable("departments"); 
+                entity.ToTable("departments");
                 entity.HasKey(d => d.DepartmentId);
-
                 entity.Property(d => d.DepartmentId).HasColumnName("department_id").ValueGeneratedOnAdd();
                 entity.Property(d => d.Code).HasColumnName("code").IsRequired().HasMaxLength(20);
                 entity.Property(d => d.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
-                entity.Property(d => d.ManagerId).HasColumnName("manager_id"); 
-
+                entity.Property(d => d.ManagerId).HasColumnName("manager_id");
                 MapAuditableProperties(entity);
                 entity.HasIndex(d => d.Code).IsUnique();
+
+                entity.HasOne(d => d.Manager).WithMany().HasForeignKey(d => d.ManagerId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Position>(entity =>
             {
                 entity.ToTable("positions");
                 entity.HasKey(p => p.PositionId);
-
                 entity.Property(p => p.PositionId).HasColumnName("position_id").ValueGeneratedOnAdd();
                 entity.Property(p => p.Code).HasColumnName("code").IsRequired().HasMaxLength(20);
                 entity.Property(p => p.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
-                entity.Property(p => p.DepartmentId).HasColumnName("department_id").IsRequired();
-
                 MapAuditableProperties(entity);
                 entity.HasIndex(p => p.Code).IsUnique();
+            });
 
-                entity.HasOne(p => p.Department)
-                      .WithMany(d => d.Positions)
-                      .HasForeignKey(p => p.DepartmentId)
-                      .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Job>(entity =>
+            {
+                entity.ToTable("jobs");
+                entity.HasKey(j => j.JobId);
+                entity.Property(j => j.JobId).HasColumnName("job_id");
+                entity.Property(j => j.DepartmentId).HasColumnName("department_id");
+                entity.Property(j => j.PositionId).HasColumnName("position_id");
+                MapAuditableProperties(entity);
+                entity.HasIndex(j => new { j.DepartmentId, j.PositionId }).IsUnique();
+
+                entity.HasOne(j => j.Department).WithMany(d => d.Jobs).HasForeignKey(j => j.DepartmentId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(j => j.Position).WithMany(p => p.Jobs).HasForeignKey(j => j.PositionId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.ToTable("role");
                 entity.HasKey(r => r.RoleId);
-
                 entity.Property(r => r.RoleId).HasColumnName("role_id").ValueGeneratedOnAdd();
                 entity.Property(r => r.Name).HasColumnName("name").IsRequired().HasMaxLength(50);
                 entity.Property(r => r.Description).HasColumnName("description").HasMaxLength(200);
-
                 MapAuditableProperties(entity);
                 entity.HasIndex(r => r.Name).IsUnique();
             });
@@ -92,7 +100,6 @@ namespace SmartHR_Payroll.Data
             {
                 entity.ToTable("employees");
                 entity.HasKey(e => e.EmployeeId);
-
                 entity.Property(e => e.EmployeeId).HasColumnName("employee_id").ValueGeneratedOnAdd();
                 entity.Property(e => e.EmployeeCode).HasColumnName("employee_code").IsRequired().HasMaxLength(20);
                 entity.Property(e => e.FirstName).HasColumnName("first_name").IsRequired().HasMaxLength(50);
@@ -102,35 +109,58 @@ namespace SmartHR_Payroll.Data
                 entity.Property(e => e.Email).HasColumnName("email").IsRequired().HasMaxLength(100);
                 entity.Property(e => e.PhoneNumber).HasColumnName("phone_number").HasMaxLength(20);
                 entity.Property(e => e.Address).HasColumnName("address").HasMaxLength(500);
+
+                entity.Property(e => e.BankId).HasColumnName("bank_id");
                 entity.Property(e => e.BankAccountNumber).HasColumnName("bank_account_number").HasMaxLength(50);
-                entity.Property(e => e.BankName).HasColumnName("bank_name").HasMaxLength(100);
-                entity.Property(e => e.HireDate).HasColumnName("hire_date").IsRequired();
-                entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(Status.EmployeeStatus.Active);
-                entity.Property(e => e.DepartmentId).HasColumnName("department_id").IsRequired();
-                entity.Property(e => e.PositionId).HasColumnName("position_id").IsRequired();
+                entity.Property(e => e.DependentCount).HasColumnName("dependent_count").HasDefaultValue(0); 
+                entity.Property(e => e.JobId).HasColumnName("job_id").IsRequired();
                 entity.Property(e => e.RoleId).HasColumnName("role_id").IsRequired();
 
-                entity.Ignore(e => e.FullName); 
+                entity.Property(e => e.HireDate).HasColumnName("hire_date").IsRequired();
+                entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(Status.EmployeeStatus.Active);
 
+                entity.Ignore(e => e.FullName);
                 MapAuditableProperties(entity);
-
                 entity.HasIndex(e => e.EmployeeCode).IsUnique();
                 entity.HasIndex(e => e.Email).IsUnique();
 
-                entity.HasOne(e => e.Department)
-                      .WithMany(d => d.Employees)
-                      .HasForeignKey(e => e.DepartmentId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Job).WithMany(j => j.Employees).HasForeignKey(e => e.JobId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Role).WithMany(r => r.Employees).HasForeignKey(e => e.RoleId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Bank).WithMany(b => b.Employees).HasForeignKey(e => e.BankId).OnDelete(DeleteBehavior.SetNull);
+            });
 
-                entity.HasOne(e => e.Position)
-                      .WithMany(p => p.Employees)
-                      .HasForeignKey(e => e.PositionId)
-                      .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Bank>(entity =>
+            {
+                entity.ToTable("banks");
+                entity.HasKey(e => e.BankId);
+                entity.Property(e => e.BankCode).HasColumnName("bank_code").HasMaxLength(20).IsRequired();
+                entity.Property(e => e.BankName).HasColumnName("bank_name").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ShortName).HasColumnName("short_name").HasMaxLength(50);
+                MapAuditableProperties(entity);
+            });
 
-                entity.HasOne(e => e.Role)
-                      .WithMany(r => r.Employees)
-                      .HasForeignKey(e => e.RoleId)
-                      .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Insurance>(entity =>
+            {
+                entity.ToTable("insurances");
+                entity.HasKey(e => e.InsuranceId);
+                entity.Property(e => e.Code).HasColumnName("code").HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+                entity.Property(e => e.EmployeeRate).HasColumnName("employee_rate").HasColumnType("decimal(5,2)").IsRequired();
+                entity.Property(e => e.CompanyRate).HasColumnName("company_rate").HasColumnType("decimal(5,2)").IsRequired();
+                entity.Property(e => e.MaxSalaryLimit).HasColumnName("max_salary_limit").HasColumnType("decimal(18,2)");
+                MapAuditableProperties(entity);
+            });
+
+            modelBuilder.Entity<TaxBracket>(entity =>
+            {
+                entity.ToTable("tax_brackets");
+                entity.HasKey(e => e.TaxBracketId);
+                entity.Property(e => e.Level).HasColumnName("level").IsRequired();
+                entity.Property(e => e.FromIncome).HasColumnName("from_income").HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.ToIncome).HasColumnName("to_income").HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TaxRate).HasColumnName("tax_rate").HasColumnType("decimal(5,2)").IsRequired();
+                entity.Property(e => e.QuickSubtraction).HasColumnName("quick_subtraction").HasColumnType("decimal(18,2)").IsRequired();
+                MapAuditableProperties(entity);
             });
 
             modelBuilder.Entity<Contract>(entity =>
@@ -301,7 +331,6 @@ namespace SmartHR_Payroll.Data
             {
                 entity.ToTable("payslips");
                 entity.HasKey(p => p.PayslipId);
-
                 entity.Property(p => p.PayslipId).HasColumnName("payslip_id").ValueGeneratedOnAdd();
                 entity.Property(p => p.PayrollPeriodId).HasColumnName("payroll_period_id").IsRequired();
                 entity.Property(p => p.EmployeeId).HasColumnName("employee_id").IsRequired();
@@ -309,26 +338,25 @@ namespace SmartHR_Payroll.Data
                 entity.Property(p => p.PaidLeaveDays).HasColumnName("paid_leave_days").HasPrecision(4, 1).IsRequired();
                 entity.Property(p => p.BaseSalary).HasColumnName("base_salary").HasPrecision(18, 2).IsRequired();
                 entity.Property(p => p.TotalAllowances).HasColumnName("total_allowances").HasPrecision(18, 2).IsRequired();
-                entity.Property(p => p.TotalDeductions).HasColumnName("total_deductions").HasPrecision(18, 2).IsRequired();
+
+                entity.Property(p => p.SocialInsuranceAmount).HasColumnName("social_insurance_amount").HasPrecision(18, 2).IsRequired();
+                entity.Property(p => p.TaxAmount).HasColumnName("tax_amount").HasPrecision(18, 2).IsRequired();
+                entity.Property(p => p.OtherDeductions).HasColumnName("other_deductions").HasPrecision(18, 2).IsRequired();
+
+                entity.Ignore(p => p.TotalDeductions);
+
                 entity.Property(p => p.NetSalary).HasColumnName("net_salary").HasPrecision(18, 2).IsRequired();
                 entity.Property(p => p.PaymentDate).HasColumnName("payment_date");
                 entity.Property(p => p.Remarks).HasColumnName("remarks").HasMaxLength(200);
 
                 MapAuditableProperties(entity);
-
-                entity.HasOne(p => p.Employee)
-                      .WithMany(e => e.Payslips)
-                      .HasForeignKey(p => p.EmployeeId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(p => p.PayrollPeriod)
-                      .WithMany(pp => pp.Payslips)
-                      .HasForeignKey(p => p.PayrollPeriodId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.Employee).WithMany(e => e.Payslips).HasForeignKey(p => p.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.PayrollPeriod).WithMany(pp => pp.Payslips).HasForeignKey(p => p.PayrollPeriodId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Department>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Position>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<Job>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Employee>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Contract>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<LeaveType>().HasQueryFilter(x => !x.IsDeleted);

@@ -12,8 +12,8 @@ using SmartHR_Payroll.Data;
 namespace SmartHR_Payroll.Migrations
 {
     [DbContext(typeof(DBCodeFirstContext))]
-    [Migration("20260325031412_InitialDB")]
-    partial class InitialDB
+    [Migration("20260327091848_StandardHRSchema")]
+    partial class StandardHRSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,7 +111,6 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnName("is_late");
 
                     b.Property<string>("Note")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("note");
@@ -128,6 +127,65 @@ namespace SmartHR_Payroll.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("attendances", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHR_Payroll.Models.Bank", b =>
+                {
+                    b.Property<int>("BankId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BankId"));
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("bank_code");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("bank_name");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("short_name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("BankId");
+
+                    b.ToTable("banks", (string)null);
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Contract", b =>
@@ -313,6 +371,8 @@ namespace SmartHR_Payroll.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
+                    b.HasIndex("ManagerId");
+
                     b.ToTable("departments", (string)null);
                 });
 
@@ -337,11 +397,9 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("bank_account_number");
 
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("bank_name");
+                    b.Property<int?>("BankId")
+                        .HasColumnType("int")
+                        .HasColumnName("bank_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -359,9 +417,11 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("date")
                         .HasColumnName("date_of_birth");
 
-                    b.Property<int>("DepartmentId")
+                    b.Property<int>("DependentCount")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasColumnName("department_id");
+                        .HasDefaultValue(0)
+                        .HasColumnName("dependent_count");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -395,6 +455,10 @@ namespace SmartHR_Payroll.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
+                    b.Property<int>("JobId")
+                        .HasColumnType("int")
+                        .HasColumnName("job_id");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -406,10 +470,6 @@ namespace SmartHR_Payroll.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("phone_number");
-
-                    b.Property<int>("PositionId")
-                        .HasColumnType("int")
-                        .HasColumnName("position_id");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int")
@@ -433,7 +493,7 @@ namespace SmartHR_Payroll.Migrations
 
                     b.HasKey("EmployeeId");
 
-                    b.HasIndex("DepartmentId");
+                    b.HasIndex("BankId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -441,7 +501,7 @@ namespace SmartHR_Payroll.Migrations
                     b.HasIndex("EmployeeCode")
                         .IsUnique();
 
-                    b.HasIndex("PositionId");
+                    b.HasIndex("JobId");
 
                     b.HasIndex("RoleId");
 
@@ -516,6 +576,126 @@ namespace SmartHR_Payroll.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("employee_deductions", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHR_Payroll.Models.Insurance", b =>
+                {
+                    b.Property<int>("InsuranceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InsuranceId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("code");
+
+                    b.Property<decimal>("CompanyRate")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("company_rate");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("created_by");
+
+                    b.Property<decimal>("EmployeeRate")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("employee_rate");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<decimal?>("MaxSalaryLimit")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("max_salary_limit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("InsuranceId");
+
+                    b.ToTable("insurances", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHR_Payroll.Models.Job", b =>
+                {
+                    b.Property<int>("JobId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("job_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JobId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int")
+                        .HasColumnName("department_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("PositionId")
+                        .HasColumnType("int")
+                        .HasColumnName("position_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("JobId");
+
+                    b.HasIndex("PositionId");
+
+                    b.HasIndex("DepartmentId", "PositionId")
+                        .IsUnique();
+
+                    b.ToTable("jobs", (string)null);
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.LeaveRequest", b =>
@@ -760,6 +940,11 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("net_salary");
 
+                    b.Property<decimal>("OtherDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("other_deductions");
+
                     b.Property<decimal>("PaidLeaveDays")
                         .HasPrecision(4, 1)
                         .HasColumnType("decimal(4,1)")
@@ -779,15 +964,20 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("remarks");
 
+                    b.Property<decimal>("SocialInsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("social_insurance_amount");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("tax_amount");
+
                     b.Property<decimal>("TotalAllowances")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("total_allowances");
-
-                    b.Property<decimal>("TotalDeductions")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("total_deductions");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -840,10 +1030,6 @@ namespace SmartHR_Payroll.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("created_by");
 
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("int")
-                        .HasColumnName("department_id");
-
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -870,8 +1056,6 @@ namespace SmartHR_Payroll.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
-
-                    b.HasIndex("DepartmentId");
 
                     b.ToTable("positions", (string)null);
                 });
@@ -933,6 +1117,67 @@ namespace SmartHR_Payroll.Migrations
                     b.ToTable("role", (string)null);
                 });
 
+            modelBuilder.Entity("SmartHR_Payroll.Models.TaxBracket", b =>
+                {
+                    b.Property<int>("TaxBracketId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TaxBracketId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("created_by");
+
+                    b.Property<decimal>("FromIncome")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("from_income");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int")
+                        .HasColumnName("level");
+
+                    b.Property<decimal>("QuickSubtraction")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("quick_subtraction");
+
+                    b.Property<decimal>("TaxRate")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("tax_rate");
+
+                    b.Property<decimal?>("ToIncome")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("to_income");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("TaxBracketId");
+
+                    b.ToTable("tax_brackets", (string)null);
+                });
+
             modelBuilder.Entity("SmartHR_Payroll.Models.Attendance", b =>
                 {
                     b.HasOne("SmartHR_Payroll.Models.Employee", "Employee")
@@ -955,17 +1200,26 @@ namespace SmartHR_Payroll.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("SmartHR_Payroll.Models.Department", b =>
+                {
+                    b.HasOne("SmartHR_Payroll.Models.Employee", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Manager");
+                });
+
             modelBuilder.Entity("SmartHR_Payroll.Models.Employee", b =>
                 {
-                    b.HasOne("SmartHR_Payroll.Models.Department", "Department")
+                    b.HasOne("SmartHR_Payroll.Models.Bank", "Bank")
                         .WithMany("Employees")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SmartHR_Payroll.Models.Position", "Position")
+                    b.HasOne("SmartHR_Payroll.Models.Job", "Job")
                         .WithMany("Employees")
-                        .HasForeignKey("PositionId")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -975,9 +1229,9 @@ namespace SmartHR_Payroll.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Department");
+                    b.Navigation("Bank");
 
-                    b.Navigation("Position");
+                    b.Navigation("Job");
 
                     b.Navigation("Role");
                 });
@@ -1020,6 +1274,25 @@ namespace SmartHR_Payroll.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("SmartHR_Payroll.Models.Job", b =>
+                {
+                    b.HasOne("SmartHR_Payroll.Models.Department", "Department")
+                        .WithMany("Jobs")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartHR_Payroll.Models.Position", "Position")
+                        .WithMany("Jobs")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Position");
+                });
+
             modelBuilder.Entity("SmartHR_Payroll.Models.LeaveRequest", b =>
                 {
                     b.HasOne("SmartHR_Payroll.Models.Employee", "Employee")
@@ -1058,22 +1331,14 @@ namespace SmartHR_Payroll.Migrations
                     b.Navigation("PayrollPeriod");
                 });
 
-            modelBuilder.Entity("SmartHR_Payroll.Models.Position", b =>
+            modelBuilder.Entity("SmartHR_Payroll.Models.Bank", b =>
                 {
-                    b.HasOne("SmartHR_Payroll.Models.Department", "Department")
-                        .WithMany("Positions")
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Department");
+                    b.Navigation("Employees");
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Department", b =>
                 {
-                    b.Navigation("Employees");
-
-                    b.Navigation("Positions");
+                    b.Navigation("Jobs");
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Employee", b =>
@@ -1091,6 +1356,11 @@ namespace SmartHR_Payroll.Migrations
                     b.Navigation("Payslips");
                 });
 
+            modelBuilder.Entity("SmartHR_Payroll.Models.Job", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
             modelBuilder.Entity("SmartHR_Payroll.Models.PayrollPeriod", b =>
                 {
                     b.Navigation("Payslips");
@@ -1098,7 +1368,7 @@ namespace SmartHR_Payroll.Migrations
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Position", b =>
                 {
-                    b.Navigation("Employees");
+                    b.Navigation("Jobs");
                 });
 
             modelBuilder.Entity("SmartHR_Payroll.Models.Role", b =>

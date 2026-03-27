@@ -14,7 +14,10 @@ namespace SmartHR_Payroll.Models
         public decimal PaidLeaveDays { get; set; }
         public decimal BaseSalary { get; set; }
         public decimal TotalAllowances { get; set; }
-        public decimal TotalDeductions { get; set; }
+        public decimal OtherDeductions { get; set; }
+        public decimal SocialInsuranceAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal TotalDeductions => SocialInsuranceAmount + TaxAmount + OtherDeductions;
         public decimal NetSalary { get; set; }
         public DateTime? PaymentDate { get; set; }
         public string Remarks { get; set; }
