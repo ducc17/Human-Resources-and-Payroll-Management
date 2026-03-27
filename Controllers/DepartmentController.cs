@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartHR_Payroll.Models;
 using SmartHR_Payroll.Services.IServices;
@@ -36,6 +37,7 @@ namespace SmartHR_Payroll.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "HR")]
         public async Task<IActionResult> Details(int id)
         {
             // Gọi Service lấy dữ liệu chi tiết
@@ -48,6 +50,7 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "HR")]
         public async Task<IActionResult> Create()
         {
             await LoadManagersDropdown(); // Hứng danh sách Manager
@@ -55,6 +58,7 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "HR")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Department department)
         {
@@ -69,6 +73,7 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "HR")]
         public async Task<IActionResult> Edit(int id)
         {
             var dept = await _departmentService.GetByIdAsync(id);
@@ -83,6 +88,7 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "HR")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Department model)
         {
@@ -132,6 +138,7 @@ namespace SmartHR_Payroll.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "HR")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(int id)
         {
@@ -161,6 +168,34 @@ namespace SmartHR_Payroll.Controllers
             });
 
             ViewBag.Employees = new SelectList(list, "Id", "FullName", currentManagerId);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "HR")]
+        public async Task<IActionResult> AssignManager([FromBody] AssignManagerRequest request)
+        {
+            try
+            {
+                // Lấy tên người đang thao tác
+                string currentUserName = User.Identity?.Name ?? "Admin";
+
+                // GIAO PHÓ TOÀN BỘ LOGIC CHO SERVICE
+                await _departmentService.AssignManagerAsync(request.DepartmentId, request.EmployeeId, currentUserName);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi từ Service (VD: Lỗi trùng quản lý) và báo ra màn hình
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Class nhỏ xíu dùng để hứng Data JSON từ View gửi lên
+        public class AssignManagerRequest
+        {
+            public int EmployeeId { get; set; }
+            public int DepartmentId { get; set; }
         }
     }
 }

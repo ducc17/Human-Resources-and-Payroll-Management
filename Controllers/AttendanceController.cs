@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartHR_Payroll.Services;
 using SmartHR_Payroll.Services.IServices;
 using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
+    
     public class AttendanceController : Controller
     {
         private readonly IAttendanceService _attendanceService;
@@ -17,6 +19,7 @@ namespace SmartHR_Payroll.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "Manager, HR")]
         public async Task<IActionResult> Index(string? search, int? departmentId, DateOnly? fromDate, DateOnly? toDate, string? status, int page = 1)
         {
             int pageSize = 10;
@@ -42,6 +45,7 @@ namespace SmartHR_Payroll.Controllers
 
         // Trang hiển thị Form Import
         [HttpGet]
+        [Authorize(Roles = "Manager, HR")]
         public IActionResult Import()
         {
             return View();
@@ -71,36 +75,26 @@ namespace SmartHR_Payroll.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MyHistory(string? fromDate, string? toDate, string? status)
+        [Authorize]
+        public async Task<IActionResult> MyHistory(int? month, int? year)
         {
+            // 1. Lấy ID nhân viên
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Auth");
+            int empId = int.Parse(userIdStr);
 
-            int employeeId = int.Parse(userIdStr);
+            // 2. Xác định tháng/năm (mặc định là hiện tại nếu không chọn)
+            int currentMonth = month ?? DateTime.Now.Month;
+            int currentYear = year ?? DateTime.Now.Year;
 
-            // Xử lý ép kiểu Ngày tháng
-            DateOnly? from = null;
-            DateOnly? to = null;
-            if (DateOnly.TryParse(fromDate, out DateOnly parsedFrom)) from = parsedFrom;
-            if (DateOnly.TryParse(toDate, out DateOnly parsedTo)) to = parsedTo;
+            // 3. ĐẨY HẾT LOGIC CHO SERVICE
+            var dailyData = await _attendanceService.GetMyAttendanceCalendarAsync(empId, currentMonth, currentYear);
 
-            // Truyền tham số xuống Service
-            var history = await _attendanceService.GetMyAttendanceHistoryAsync(employeeId, from, to, status);
+            // 4. Trả View
+            ViewBag.Month = currentMonth;
+            ViewBag.Year = currentYear;
 
-            var emp = await _employeeService.GetByIdAsync(employeeId);
-            if (emp != null)
-            {
-                ViewBag.FullName = emp.FirstName + " " + emp.LastName;
-                ViewBag.PositionName = emp.Job.Position?.Name ?? "Nhân viên";
-                ViewBag.DepartmentName = emp.Job.Department?.Name ?? "Chưa phân phòng";
-            }
-
-            // Lưu lại trạng thái lọc để form không bị mất dữ liệu khi load lại trang
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
-            ViewBag.Status = status;
-
-            return View(history);
+            return View(dailyData);
         }
     }
 }

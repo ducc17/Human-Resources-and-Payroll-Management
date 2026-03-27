@@ -1,124 +1,267 @@
-﻿@model List<SmartHR_Payroll.Models.Attendance>
+﻿@model Dictionary<int, SmartHR_Payroll.ViewModels.Attendance.DailyAttendanceViewModel>
 
 @{
-    ViewData["Title"] = "Lịch sử chấm công";
+    ViewData["Title"] = "Bảng Công Cá Nhân";
+    int month = ViewBag.Month ?? DateTime.Now.Month;
+    int year = ViewBag.Year ?? DateTime.Now.Year;
+
+    // Thuật toán tính toán Lịch
+    int daysInMonth = DateTime.DaysInMonth(year, month);
+    DateTime firstDayOfMonth = new DateTime(year, month, 1);
+    
+    // C# DayOfWeek quy định Sunday = 0, Monday = 1...
+    // Để Lịch bắt đầu từ Thứ 2, ta đổi lại: Thứ 2 = 0 ... Chủ Nhật = 6
+    int startDayOfWeek = ((int)firstDayOfMonth.DayOfWeek + 6) % 7; 
+    
+    // Tính tổng số ô cần vẽ (bao gồm ô trống đầu tháng và cuối tháng)
+    int totalCells = (int)Math.Ceiling((startDayOfWeek + daysInMonth) / 7.0) * 7;
 }
 
+<style>
+    /* CSS Tùy chỉnh cho Lịch */
+    .calendar-table {
+        table-layout: fixed;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .calendar-table th {
+        text-align: right;
+        font-weight: 600;
+        color: #495057;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.95rem;
+    }
+    .calendar-cell {
+        height: 110px;
+        border: 1px solid #dee2e6;
+        vertical-align: top;
+        padding: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+    .calendar-cell:hover {
+        box-shadow: inset 0 0 0 2px #0d6efd;
+    }
+    .date-number {
+        text-align: right;
+        color: #adb5bd;
+        font-size: 0.95rem;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    .bg-workday { background-color: #f0f7ff; } /* Màu xanh nhạt */
+    .bg-weekend { background-color: #ffffff; } /* Màu trắng */
+    .empty-cell { background-color: #f8f9fa; border: none; }
+    
+    .status-code {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #495057;
+    }
+    .hours-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+</style>
+
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-3 col-md-4 mb-4">
+        
+            <div class="card shadow-sm border-0 p-4">
+                <h4 class="fw-bold mb-4 text-uppercase text-primary"><i class="bi bi-calendar3"></i> Bảng Công Cá Nhân</h4>
 
-            <div class="card shadow-sm text-center p-4 mb-3 border-0">
-                <img src="https://ui-avatars.com/api/?name=@ViewBag.FullName&background=random&size=128"
-                     class="rounded-circle mx-auto mb-3" alt="Avatar" width="120">
-                <h5 class="mb-1 fw-bold">@ViewBag.FullName</h5>
-                <p class="text-muted mb-2 small">@ViewBag.PositionName</p>
-                <span class="badge bg-primary">@ViewBag.DepartmentName</span>
-            </div>
-
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white fw-bold text-uppercase small text-muted py-3">
-                    <i class="bi bi-grid-fill me-1"></i> Tùy chọn
-                </div>
-                <div class="list-group list-group-flush">
-                    <a asp-controller="Profile" asp-action="Index" class="list-group-item list-group-item-action py-3">
-                        <i class="bi bi-person-lines-fill text-secondary me-2"></i> Hồ sơ cá nhân
-                    </a>
-
-                    <a asp-controller="Attendance" asp-action="MyHistory" class="list-group-item list-group-item-action py-3 active fw-bold">
-                        <i class="bi bi-clock-history text-white me-2"></i> Lịch sử chấm công
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-9 col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
-                    <div><i class="bi bi-calendar-check text-primary"></i> Nhật ký chấm công của tôi</div>
-                </div>
-
-                <div class="card-body bg-light border-bottom py-2">
-                    <form method="get" asp-action="MyHistory">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted fw-bold mb-1">Từ ngày</label>
-                                <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted fw-bold mb-1">Đến ngày</label>
-                                <input type="date" name="toDate" class="form-control form-control-sm" value="@ViewBag.ToDate">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted fw-bold mb-1">Trạng thái</label>
-                                <select name="status" class="form-select form-select-sm">
-                                    <option value="">-- Tất cả --</option>
-                                    <option value="ontime" selected="@(ViewBag.Status == "ontime")">Đúng giờ</option>
-                                    <option value="late" selected="@(ViewBag.Status == "late")">Đi trễ</option>
-                                    <option value="absent" selected="@(ViewBag.Status == "absent")">Vắng mặt</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 d-flex gap-1 mt-auto pb-1">
-                                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Lọc</button>
-                                <a asp-action="MyHistory" class="btn btn-outline-secondary btn-sm" title="Tải lại"><i class="bi bi-arrow-clockwise"></i>xóa</a>
-                            </div>
+                <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 border-bottom pb-3">
+                    <div class="mb-2 mb-md-0">
+                        <ul class="nav nav-pills custom-nav-pills">
+                            <li class="nav-item"><a class="nav-link text-muted" href="#">Thông tin vào ra</a></li>
+                            <li class="nav-item"><a class="nav-link active bg-primary text-white" href="#">Bảng chấm công</a></li>
+                            <li class="nav-item"><a class="nav-link text-muted" href="#">Làm thêm giờ</a></li>
+                        </ul>
+                    </div>
+                    
+                    <form method="get" asp-action="MyHistory" class="d-flex gap-3 align-items-center bg-light p-2 rounded">
+                        <div>
+                            <label class="form-label small text-muted fw-bold mb-0">Năm</label>
+                            <select name="year" class="form-select form-select-sm border-0 shadow-none bg-white" onchange="this.form.submit()">
+                                @for(int y = DateTime.Now.Year - 2; y <= DateTime.Now.Year + 1; y++)
+                                {
+                                    <option value="@y" selected="@(y == year)">@y</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted fw-bold mb-0">Kỳ lương</label>
+                            <select name="month" class="form-select form-select-sm border-0 shadow-none bg-white" onchange="this.form.submit()">
+                                @for(int m = 1; m <= 12; m++)
+                                {
+                                    <option value="@m" selected="@(m == month)">Tháng @m</option>
+                                }
+                            </select>
                         </div>
                     </form>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 text-center">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4 text-start">Ngày làm việc</th>
-                                    <th>Giờ vào</th>
-                                    <th>Giờ ra</th>
-                                    <th>Tổng giờ</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ghi chú</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model != null && Model.Any())
+
+                <h3 class="text-center fw-bold mb-4">BẢNG CHẤM CÔNG THÁNG @month/@year</h3>
+
+                @{
+                    // Tính toán dữ liệu thống kê từ Model
+                    int totalDaysWorked = Model.Count; 
+                    int totalLateDays = Model.Values.Count(d => d.IsLate);
+                    decimal totalHoursMonth = Model.Values.Sum(d => d.TotalHours);
+                }
+                
+                <div class="row text-center mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="card bg-primary text-white border-0 shadow-sm h-100 rounded-3">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase fw-bold mb-1" style="opacity: 0.85;"><i class="bi bi-calendar-check"></i> Ngày đi làm</h6>
+                                <h2 class="mb-0 fw-bold">@totalDaysWorked <span class="fs-6 fw-normal">ngày</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="card bg-warning text-dark border-0 shadow-sm h-100 rounded-3">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase fw-bold mb-1" style="opacity: 0.85;"><i class="bi bi-exclamation-triangle"></i> Đi trễ / Về sớm</h6>
+                                <h2 class="mb-0 fw-bold">@totalLateDays <span class="fs-6 fw-normal">lần</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white border-0 shadow-sm h-100 rounded-3">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase fw-bold mb-1" style="opacity: 0.85;"><i class="bi bi-stopwatch"></i> Tổng giờ làm</h6>
+                                <h2 class="mb-0 fw-bold">@Math.Round(totalHoursMonth, 1) <span class="fs-6 fw-normal">giờ</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="calendar-table">
+
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th>Thứ 2</th>
+                            <th>Thứ 3</th>
+                            <th>Thứ 4</th>
+                            <th>Thứ 5</th>
+                            <th>Thứ 6</th>
+                            <th>Thứ 7</th>
+                            <th class="text-danger">Chủ nhật</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                        @for (int i = 0; i < totalCells; i++)
+                        {
+                            // Ngắt dòng khi hết 1 tuần (7 ngày)
+                            if (i > 0 && i % 7 == 0)
+                            {
+                                @:</tr><tr>
+                            }
+
+                            int currentDay = i - startDayOfWeek + 1;
+                            bool isWeekend = (i % 7 == 5 || i % 7 == 6); // Thứ 7 hoặc Chủ Nhật
+
+                            // Ô trống đầu/cuối tháng
+                            if (currentDay < 1 || currentDay > daysInMonth)
+                            {
+                                <td class="empty-cell rounded"></td>
+                            }
+                            else
+                            {
+                                string bgClass = isWeekend ? "bg-weekend" : "bg-workday";
+
+                                // Có dữ liệu -> Bấm được (Mở Modal)
+                                if (Model.ContainsKey(currentDay))
                                 {
-                                    foreach (var item in Model)
-                                    {
-                                        <tr>
-                                            <td class="ps-4 fw-bold text-start">@item.Date.ToString("dd/MM/yyyy")</td>
-                                            <td class="text-success fw-bold">@(item.CheckInTime?.ToString(@"hh\:mm") ?? "--:--")</td>
-                                            <td class="text-danger fw-bold">@(item.CheckOutTime?.ToString(@"hh\:mm") ?? "--:--")</td>
-                                            <td><span class="badge bg-info text-dark">@item.TotalHours h</span></td>
-                                            <td>
-                                                @if (item.IsLate)
-                                                {
-                                                    <span class="badge bg-warning text-dark">Đi trễ</span>
-                                                }
-                                                else if (item.CheckInTime.HasValue)
-                                                {
-                                                    <span class="badge bg-success">Đúng giờ</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">Vắng</span>
-                                                }
-                                            </td>
-                                            <td class="small text-muted fst-italic">@item.Note</td>
-                                        </tr>
-                                    }
+                                    var dayData = Model[currentDay];
+                                    <td class="calendar-cell @bgClass rounded" data-bs-toggle="modal" data-bs-target="#modalDay_@currentDay" style="cursor: pointer;" title="Nhấn để xem chi tiết">
+                                        <div class="date-number @(isWeekend ? "text-danger" : "")">@currentDay</div>
+                                        
+                                        @if(dayData.IsLate)
+                                        {
+                                            <div class="status-code text-warning"><i class="bi bi-exclamation-circle-fill"></i> M</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="status-code text-primary"><i class="bi bi-check-circle-fill"></i> X</div>
+                                        }
+                                        
+                                        <div class="hours-text">@(Math.Round(dayData.TotalHours, 1)) giờ</div>
+                                    </td>
                                 }
+                                // Không có dữ liệu
                                 else
                                 {
-                                    <tr>
-                                        <td colspan="5" class="text-center py-5 text-muted">
-                                            Bạn chưa có dữ liệu chấm công nào.
-                                        </td>
-                                    </tr>
+                                    <td class="calendar-cell @bgClass rounded">
+                                        <div class="date-number @(isWeekend ? "text-danger" : "")">@currentDay</div>
+                                        
+                                        @if (isWeekend)
+                                        {
+                                            <div class="status-code text-muted" style="font-size: 0.9rem;">OFF</div>
+                                        }
+                                        else if (new DateTime(year, month, currentDay) < DateTime.Now.Date)
+                                        {
+                                            <div class="status-code text-danger" style="font-size: 0.9rem;">V</div>
+                                            <div class="hours-text">0 giờ</div>
+                                        }
+                                    </td>
                                 }
-                            </tbody>
-                        </table>
+                            }
+                        }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+   
+</div>
+
+@foreach (var item in Model)
+{
+    var dayData = item.Value;
+    <div class="modal fade" id="modalDay_@item.Key" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-calendar2-check-fill me-2"></i> Chi tiết ngày @dayData.Date.ToString("dd/MM/yyyy")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int stt = 1; }
+                            @foreach (var detail in dayData.Details)
+                            {
+                                <tr>
+                                    <td class="text-muted">@stt</td>
+                                    <td class="text-success fw-bold">@(detail.CheckInTime.HasValue ? detail.CheckInTime.Value.ToString(@"hh\:mm") : "---")</td>
+                                    <td class="text-danger fw-bold">@(detail.CheckOutTime.HasValue ? detail.CheckOutTime.Value.ToString(@"hh\:mm") : "---")</td>
+                                    <td class="text-muted small fst-italic">@detail.Note</td>
+                                </tr>
+                                stt++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer bg-light border-0 d-flex justify-content-between">
+                    <div class="text-muted small">
+                        <span class="fw-bold text-dark">Tổng cộng:</span> <span class="badge bg-info text-dark fs-6">@Math.Round(dayData.TotalHours, 2) giờ</span>
                     </div>
+                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}

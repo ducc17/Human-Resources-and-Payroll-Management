@@ -19,5 +19,6 @@ namespace SmartHR_Payroll.Services.IServices
 
         Task<bool> CheckManagerConflictAsync(int managerId, int currentDepartmentId);
         Task DeactivateAsync(int id);
+        Task AssignManagerAsync(int departmentId, int employeeId, string currentUserName);
     }
 }

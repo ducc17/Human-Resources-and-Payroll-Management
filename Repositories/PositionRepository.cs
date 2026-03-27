@@ -104,5 +104,12 @@ namespace SmartHR_Payroll.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<bool> HasEmployeesAsync(int positionId)
+        {
+            // Kiểm tra xem có Job nào thuộc Vị trí này mà đang chứa Nhân viên (chưa bị xóa) hay không
+            // (Giả sử bảng Employee của bạn có cột IsDeleted, nếu không có thì bỏ đoạn !e.IsDeleted đi)
+            return await _context.Jobs
+                .AnyAsync(j => j.PositionId == positionId && j.Employees.Any(e => !e.IsDeleted));
+        }
     }
 }

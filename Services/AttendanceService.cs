@@ -155,6 +155,32 @@ namespace SmartHR_Payroll.Services
             // 3. Trả về cả Data và Tổng số trang
             return (pagedData, totalPages);
         }
+        public async Task<Dictionary<int, DailyAttendanceViewModel>> GetMyAttendanceCalendarAsync(int employeeId, int month, int year)
+        {
+            // 1. Tính toán ngày bắt đầu và kết thúc của tháng
+            var startDate = new DateOnly(year, month, 1);
+            var endDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
 
+            // 2. Lấy dữ liệu thô từ Repository
+            var rawData = await _attendanceRepository.GetMyAttendanceHistoryAsync(employeeId, startDate, endDate, null);
+
+            // 3. Xử lý gom nhóm (Group By) ngay tại Service
+            var dailyData = rawData.GroupBy(a => a.Date.Day)
+        .ToDictionary(g => g.Key, g => new DailyAttendanceViewModel
+        {
+            Date = g.First().Date,
+            FirstCheckIn = g.Where(x => x.CheckInTime.HasValue).Min(x => x.CheckInTime),
+            LastCheckOut = g.Where(x => x.CheckOutTime.HasValue).Max(x => x.CheckOutTime),
+            IsLate = g.Any(x => x.IsLate),
+            TotalHours = g.Where(x => x.CheckInTime.HasValue && x.CheckOutTime.HasValue).Any()
+                ? (decimal)(g.Max(x => x.CheckOutTime) - g.Min(x => x.CheckInTime)).Value.TotalHours
+                : 0,
+
+            // === BỔ SUNG DÒNG NÀY ĐỂ LẤY CHI TIẾT ===
+            Details = g.OrderBy(x => x.CheckInTime ?? x.CheckOutTime).ToList()
+        });
+
+            return dailyData;
+        }
     }
 }

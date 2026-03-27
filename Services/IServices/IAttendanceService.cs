@@ -22,5 +22,7 @@ namespace SmartHR_Payroll.Services.IServices
             int? departmentId,
             int page = 1,
             int pageSize = 10);
+
+        Task<Dictionary<int, DailyAttendanceViewModel>> GetMyAttendanceCalendarAsync(int employeeId, int month, int year);
     }
 }

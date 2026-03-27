@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartHR_Payroll.Services.IServices;
 using SmartHR_Payroll.ViewModels.Profile;
@@ -6,6 +7,7 @@ using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly IEmployeeService _employeeService;

@@ -47,11 +47,9 @@ namespace SmartHR_Payroll.Repositories
                 query = query.Where(a => a.Employee.Job != null && a.Employee.Job.DepartmentId == departmentId.Value);
             }
 
-            // Tải toàn bộ danh sách thô về RAM để xử lý Gom nhóm
             var rawData = await query.ToListAsync();
 
             // 2. LOGIC GOM NHÓM (GROUP BY)
-            // Nhóm theo Mã nhân viên VÀ Ngày
             var groupedData = rawData
                 .GroupBy(a => new { a.EmployeeId, a.Date })
                 .Select(group =>
@@ -138,9 +136,6 @@ namespace SmartHR_Payroll.Repositories
 
         public async Task AddMultipleAttendanceAsync(Attendance attendance)
         {
-            // BƯỚC 1: KIỂM TRA TRÙNG LẶP TUYỆT ĐỐI (SOFT DUPLICATE CHECK)
-            // Để tránh lỗi khi HR ấn Import 2 lần cái file Excel y hệt nhau.
-            // Chúng ta chỉ Insert nếu dòng này chưa tồn tại chính xác đến từng giây quẹt.
 
             bool isExisting = await _context.Attendances.AnyAsync(a =>
                 a.EmployeeId == attendance.EmployeeId &&
@@ -150,8 +145,6 @@ namespace SmartHR_Payroll.Repositories
 
             if (!isExisting)
             {
-                // BƯỚC 2: NẾU CA NÀY CHƯA CÓ -> THÊM MỚI (INSERT)
-                // Cấu trúc DB của bạn dùng attendance_id tự tăng nên ko lo trùng khóa chính.
                 await _context.Attendances.AddAsync(attendance);
                 await _context.SaveChangesAsync();
             }
