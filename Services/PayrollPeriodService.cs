@@ -64,12 +64,12 @@ namespace SmartHR_Payroll.Services
                 {
                     // Lọc phụ cấp của nhân viên này
                     var allowances = p.Employee.Allowances
-                        .Where(a => a.EffectiveDate <= period.EndDate)
+                        .Where(a => period.StartDate <= a.EffectiveDate && a.EffectiveDate <= period.EndDate)
                         .Select(a => new AllowanceDetailViewModel { Name = a.Allowance.Name, Amount = a.Amount }).ToList();
 
                     // Lọc khấu trừ của nhân viên này
                     var deductions = p.Employee.Deductions
-                        .Where(d => d.EffectiveDate <= period.EndDate)
+                        .Where(d => period.StartDate <= d.EffectiveDate && d.EffectiveDate <= period.EndDate)
                         .Select(d => new DeductionDetailViewModel { Name = d.Deduction.Name, Amount = d.Amount }).ToList();
 
                     return new PayslipItemViewModel
@@ -199,7 +199,7 @@ namespace SmartHR_Payroll.Services
         private decimal CalculateDeductions(Employee emp, PayrollPeriod period)
         {
             var deductions = emp.Deductions
-                .Where(d => d.EffectiveDate <= period.EndDate)
+                .Where(d => period.StartDate <= d.EffectiveDate && d.EffectiveDate <= period.EndDate)
                 .Sum(d => d.Amount);
 
             return deductions;
