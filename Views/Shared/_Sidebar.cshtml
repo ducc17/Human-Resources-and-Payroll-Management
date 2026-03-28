@@ -22,11 +22,7 @@
                         <i class="fa-solid fa-users me-2 text-secondary"></i> Danh sách nhân viên
                     </a>
                 </li>
-                <li>
-                    <a asp-controller="Contract" asp-action="Index" class="nav-link text-dark sidebar-link">
-                        <i class="fa-solid fa-file-signature me-2 text-secondary"></i> Hợp đồng lao động
-                    </a>
-                </li>
+
                 <li>
                     <a asp-controller="Department" asp-action="Index" class="nav-link text-dark sidebar-link">
                         <i class="fa-solid fa-sitemap me-2 text-secondary"></i> Phòng ban & Vị trí
@@ -56,12 +52,8 @@
                 </li>
                 <li>
                     <a asp-controller="Employee" asp-action="Index" class="nav-link text-dark sidebar-link">
+
                         <i class="fa-solid fa-users me-2 text-secondary"></i> Danh sách nhân viên
-                    </a>
-                </li>
-                <li>
-                    <a asp-controller="Contract" asp-action="Index" class="nav-link text-dark sidebar-link">
-                        <i class="fa-solid fa-file-signature me-2 text-secondary"></i> Hợp đồng lao động
                     </a>
                 </li>
                 <li>
@@ -158,6 +150,14 @@
                     <i class="fa-solid fa-money-check-dollar me-2 text-secondary"></i> Phiếu lương (Payslip)
                 </a>
             </li>
+            @if (User.IsInRole("Employee"))
+            {
+                <li>
+                    <a asp-controller="Employee" asp-action="MyContracts" class="nav-link text-dark sidebar-link">
+                        <i class="fa-solid fa-file-signature me-2 text-secondary"></i> Xác nhận hợp đồng
+                    </a>
+                </li>
+            }
         </ul>
 
         <hr>

@@ -84,17 +84,18 @@ namespace SmartHR_Payroll.Services
                 return (false, "Không tìm thấy hợp đồng.");
             }
 
+            if (contract.IsDeleted)
+            {
+                return (false, "Hợp đồng này đã bị hủy trước đó.");
+            }
+
             if (!contract.IsActive)
             {
                 return (false, "Hợp đồng này đã được hủy trước đó.");
             }
 
             contract.IsActive = false;
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            if (!contract.EndDate.HasValue || contract.EndDate.Value > today)
-            {
-                contract.IsDeleted = true;
-            }
+            contract.IsDeleted = true;
 
             contract.UpdatedAt = DateTime.UtcNow;
             contract.UpdatedBy = actor;
@@ -116,6 +117,11 @@ namespace SmartHR_Payroll.Services
             if (contract == null)
             {
                 return (false, "Không tìm thấy hợp đồng.");
+            }
+
+            if (contract.IsDeleted)
+            {
+                return (false, "Hợp đồng này đã bị hủy và không thể kích hoạt lại.");
             }
 
             if (contract.EmployeeId != employeeId)

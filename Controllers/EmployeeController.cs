@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace SmartHR_Payroll.Controllers
 {
-    [Authorize(Roles = "Admin,HR,Manager")]
+    [Authorize]
     public class EmployeeController : Controller
     {
         private readonly IEmployeeService _employeeService;
@@ -353,6 +353,20 @@ namespace SmartHR_Payroll.Controllers
 
             TempData["SuccessMessage"] = result.Message;
             return RedirectToAction(nameof(AddDeduction), new { employeeId = model.EmployeeId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Employee")]
+        public IActionResult MyContracts()
+        {
+            var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(currentUserIdClaim, out var currentUserId))
+            {
+                TempData["ErrorMessage"] = "Không xác định được tài khoản hiện tại.";
+                return RedirectToAction("Index", "Profile");
+            }
+
+            return RedirectToAction(nameof(Contracts), new { employeeId = currentUserId });
         }
 
         [HttpGet]

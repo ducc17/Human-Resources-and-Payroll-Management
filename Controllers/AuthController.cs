@@ -82,5 +82,11 @@ namespace SmartHR_Payroll.Controllers
         {
             return View(); 
         }
+
+        [HttpGet("/Account/AccessDenied")]
+        public IActionResult AccountAccessDenied()
+        {
+            return RedirectToAction(nameof(AccessDenied));
+        }
     }
 }

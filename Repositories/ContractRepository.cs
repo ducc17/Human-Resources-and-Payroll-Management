@@ -42,7 +42,8 @@ namespace SmartHR_Payroll.Repositories
         public async Task<Contract?> GetContractByIdAsync(int contractId)
         {
             return await _context.Contracts
-                .FirstOrDefaultAsync(c => c.ContractId == contractId && !c.IsDeleted);
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.ContractId == contractId);
         }
 
         public async Task UpdateContractAsync(Contract contract)
